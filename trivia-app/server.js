@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -15,14 +16,47 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'birthday2025';
 const JWT_SECRET = process.env.JWT_SECRET || 'trivia-secret-key-change-me';
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'trivias.json');
+
+// ─── Persistence ──────────────────────────────────────────────────────────────
+function loadTrivias() {
+  try {
+    fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      Object.assign(trivias, parsed);
+      console.log(`📂 Loaded ${Object.keys(trivias).length} trivia(s) from disk`);
+    }
+  } catch (err) {
+    console.warn('⚠️  Could not load trivia data:', err.message);
+  }
+}
+
+let saveTimer = null;
+function saveTrivias() {
+  // Debounce — batch rapid saves into one write
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+      fs.writeFileSync(DATA_FILE, JSON.stringify(trivias, null, 2), 'utf8');
+    } catch (err) {
+      console.error('❌ Failed to save trivia data:', err.message);
+    }
+  }, 300);
+}
 
 // ─── In-memory state ──────────────────────────────────────────────────────────
 const trivias = {}; // { [triviaId]: Trivia }
 const sessions = {}; // { [sessionId]: Session }
 
+loadTrivias();
+
 function createTrivia(title) {
   const id = uuidv4();
   trivias[id] = { id, title, questions: [], createdAt: Date.now() };
+  saveTrivias();
   return trivias[id];
 }
 
@@ -105,6 +139,7 @@ app.post('/api/trivias', requireAdmin, (req, res) => {
 app.delete('/api/trivias/:id', requireAdmin, (req, res) => {
   if (!trivias[req.params.id]) return res.status(404).json({ error: 'Not found' });
   delete trivias[req.params.id];
+  saveTrivias();
   res.json({ ok: true });
 });
 
@@ -120,6 +155,7 @@ app.put('/api/trivias/:id/questions', requireAdmin, (req, res) => {
   const t = trivias[req.params.id];
   if (!t) return res.status(404).json({ error: 'Not found' });
   t.questions = req.body.questions || [];
+  saveTrivias();
   res.json(t);
 });
 
