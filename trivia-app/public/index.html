@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>✨ Party Trivia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  /* ── Tokens ────────────────────────────────────────────────────── */
+  :root {
+    --bg:       #0d0d1a;
+    --surface:  #1a1a2e;
+    --card:     #16213e;
+    --border:   #2a2a4a;
+    --text:     #f0eeff;
+    --muted:    #8888aa;
+    --primary:  #7c3aed;
+    --primary2: #a855f7;
+    --accent:   #f59e0b;
+    --green:    #10b981;
+    --red:      #ef4444;
+    --blue:     #3b82f6;
+    --pink:     #ec4899;
+    --radius:   14px;
+    --shadow:   0 4px 32px rgba(124,58,237,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── Stars bg ──────────────────────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 75%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 65%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 85%, rgba(255,255,255,0.25) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────── */
+  #app {
+    position: relative;
+    z-index: 1;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
+
+  .page { width: 100%; max-width: 720px; display: none; flex-direction: column; gap: 20px; animation: fadeIn .3s ease; }
+  .page.active { display: flex; }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+  /* ── Components ──────────────────────────────────────────────────── */
+  .logo {
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--primary2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding: 24px 0 8px;
+  }
+
+  .logo small { font-size: .55em; display: block; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; opacity: .8; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--primary2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  input[type=text], input[type=password], input[type=number], textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px 14px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, textarea:focus { border-color: var(--primary); }
+  textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+
+  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform .1s, opacity .2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary2)); color: #fff; }
+  .btn-accent  { background: linear-gradient(135deg, var(--accent), #fbbf24); color: #000; }
+  .btn-ghost   { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger  { background: var(--red); color: #fff; }
+  .btn-green   { background: var(--green); color: #fff; }
+  .btn-block   { width: 100%; }
+
+  .btn-sm { padding: 8px 16px; font-size: .85rem; border-radius: 8px; }
+
+  /* ── Alert / toast ──────────────────────────────────────────────── */
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: .9rem; }
+  .alert-error { background: rgba(239,68,68,.15); border: 1px solid var(--red); color: #fca5a5; }
+  .alert-success { background: rgba(16,185,129,.15); border: 1px solid var(--green); color: #6ee7b7; }
+
+  /* ── Trivia list ────────────────────────────────────────────────── */
+  .trivia-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .trivia-item-title { font-weight: 700; font-size: 1rem; }
+  .trivia-item-meta  { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Question editor ────────────────────────────────────────────── */
+  .question-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+
+  .question-number {
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    background: var(--primary);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .option-row { display: flex; align-items: center; gap: 8px; }
+  .option-letter {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .8rem; flex-shrink: 0;
+  }
+  .opt-a { background: #3b82f6; }
+  .opt-b { background: #ec4899; }
+  .opt-c { background: var(--accent); color: #000; }
+  .opt-d { background: var(--green); }
+
+  .correct-radio { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); cursor: pointer; }
+  .correct-radio input { accent-color: var(--green); width: 16px; height: 16px; }
+
+  .time-row { display: flex; gap: 12px; }
+  .time-row .field { flex: 1; }
+
+  /* ── Session lobby ──────────────────────────────────────────────── */
+  .join-code {
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: 6px;
+    text-align: center;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(245,158,11,.4);
+  }
+
+  .qr-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  #qr-code canvas, #qr-code img { border-radius: 10px; }
+
+  .player-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .player-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: .85rem;
+    font-weight: 600;
+    animation: popIn .25s ease;
+  }
+
+  @keyframes popIn { from { opacity:0; transform: scale(.8); } to { opacity:1; transform: scale(1); } }
+
+  /* ── Question display (player) ──────────────────────────────────── */
+  .question-display {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+
+  .question-text {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .question-progress { color: var(--muted); font-size: .85rem; margin-bottom: 20px; }
+
+  /* ── Timer ──────────────────────────────────────────────────────── */
+  .timer-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .timer-ring { position: relative; width: 70px; height: 70px; }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring circle { fill: none; stroke-width: 5; }
+  .timer-bg  { stroke: var(--border); }
+  .timer-arc { stroke: var(--primary2); transition: stroke-dashoffset .9s linear, stroke .3s; stroke-linecap: round; }
+  .timer-number {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 900; color: var(--text);
+  }
+
+  /* ── Answer options (player) ────────────────────────────────────── */
+  .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .answer-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 12px;
+    cursor: pointer;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    transition: transform .1s, border-color .15s, background .15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 80px;
+    justify-content: center;
+  }
+
+  .answer-btn:hover:not(:disabled) { transform: scale(1.03); border-color: var(--primary); }
+  .answer-btn:active:not(:disabled) { transform: scale(.97); }
+  .answer-btn:disabled { cursor: default; }
+
+  .answer-btn .opt-badge {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: .9rem;
+  }
+
+  .answer-btn.selected   { border-color: var(--primary2); background: rgba(168,85,247,.15); }
+  .answer-btn.correct    { border-color: var(--green);    background: rgba(16,185,129,.2); }
+  .answer-btn.incorrect  { border-color: var(--red);      background: rgba(239,68,68,.12); opacity: .6; }
+
+  .answer-btn-a .opt-badge { background: #3b82f6; }
+  .answer-btn-b .opt-badge { background: #ec4899; }
+  .answer-btn-c .opt-badge { background: var(--accent); color: #000; }
+  .answer-btn-d .opt-badge { background: var(--green); }
+
+  /* ── Leaderboard ────────────────────────────────────────────────── */
+  .leaderboard { display: flex; flex-direction: column; gap: 10px; }
+
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    animation: slideIn .3s ease both;
+  }
+
+  @keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: none; } }
+
+  .lb-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: .9rem; flex-shrink: 0;
+  }
+  .lb-rank.gold   { background: var(--accent); color: #000; }
+  .lb-rank.silver { background: #9ca3af; color: #000; }
+  .lb-rank.bronze { background: #b45309; color: #fff; }
+
+  .lb-name  { flex: 1; font-weight: 700; }
+  .lb-score { font-weight: 900; color: var(--accent); font-size: 1.05rem; }
+
+  /* ── Result screen ──────────────────────────────────────────────── */
+  .result-summary {
+    text-align: center;
+    padding: 20px;
+    border-radius: var(--radius);
+  }
+  .result-emoji { font-size: 3.5rem; margin-bottom: 8px; }
+  .result-text  { font-size: 1.2rem; font-weight: 700; }
+
+  /* ── Waiting screen ─────────────────────────────────────────────── */
+  .waiting-dots::after {
+    content: '';
+    animation: dots 1.4s infinite;
+  }
+  @keyframes dots {
+    0%   { content: '.'; }
+    33%  { content: '..'; }
+    66%  { content: '...'; }
+  }
+
+  /* ── Admin panel tabs ───────────────────────────────────────────── */
+  .answer-count-bar {
+    background: var(--surface);
+    border-radius: 30px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .answer-count-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary2));
+    border-radius: 30px;
+    transition: width .3s ease;
+  }
+
+  /* ── Utils ──────────────────────────────────────────────────────── */
+  .flex-row   { display: flex; gap: 10px; }
+  .flex-end   { justify-content: flex-end; }
+  .flex-center{ justify-content: center; }
+  .mt-4       { margin-top: 4px; }
+  .mt-8       { margin-top: 8px; }
+  .mt-12      { margin-top: 12px; }
+  .text-muted { color: var(--muted); font-size: .85rem; }
+  .text-center{ text-align: center; }
+  .divider    { height: 1px; background: var(--border); }
+  .hidden     { display: none !important; }
+  .emoji-big  { font-size: 2rem; }
+  .badge      { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+  .badge-purple { background: rgba(124,58,237,.3); color: var(--primary2); }
+  .gap-col    { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ── Error boundary ─────────────────────────────────────────────── */
+  #error-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1f1f2e;
+    border: 1px solid var(--red);
+    color: #fca5a5;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: .9rem;
+    z-index: 999;
+    transition: transform .3s ease;
+    text-align: center;
+    max-width: 320px;
+  }
+  #error-toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 480px) {
+    .answer-grid  { grid-template-columns: 1fr; }
+    .options-grid { grid-template-columns: 1fr; }
+    .question-text { font-size: 1.15rem; }
+    .join-code { font-size: 2.2rem; }
+    .logo { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Home / Route selector
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-home" class="page">
+    <div class="logo">✨ Party Trivia <small>birthday edition</small></div>
+
+    <div class="card">
+      <div class="card-title">🎮 Join a Game</div>
+      <div class="field">
+        <label>Enter your name</label>
+        <input id="join-name" type="text" placeholder="Your name" maxlength="20"/>
+      </div>
+      <div class="field mt-8">
+        <label>Session code</label>
+        <input id="join-code-input" type="text" placeholder="ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;font-weight:700"/>
+      </div>
+      <div id="join-error" class="alert alert-error hidden mt-8"></div>
+      <button class="btn btn-accent btn-block mt-12" onclick="joinGame()">Join Game 🎉</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔐 Admin</div>
+      <div class="flex-row flex-center">
+        <button class="btn btn-ghost" onclick="showPage('page-admin-login')">Admin Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Admin Login
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-admin-login" class="page">
+    <div class="logo">✨ Party Trivia</div>
+    <div class="card">
+      <div class="card-title">🔐 Admin Login</div>
+      <div class="gap-col">
+        <div class="field">
+          <label>Username</label>
+          <input id="admin-username" type="text" placeholder="admin"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="admin-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"/>
+        </div>
+        <div id="login-error" class="alert alert-error hidden"></div>
+        <button class="btn btn-primary btn-block" onclick="adminLogin()">Login</button>
+        <button class="btn btn-ghost btn-block" onclick="showPage('page-home')">← Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Admin Dashboard (trivia list)
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-admin-dashboard" class="page">
+    <div class="logo">✨ Party Trivia <small>admin</small></div>
+
+    <div class="card">
+      <div class="card-title">➕ New Trivia</div>
+      <div class="flex-row">
+        <input id="new-trivia-title" type="text" placeholder="Trivia title (e.g. Taylor's Birthday Trivia!)"/>
+        <button class="btn btn-primary" style="flex-shrink:0" onclick="createTrivia()">Create</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Your Trivias</div>
+      <div id="trivia-list" class="gap-col">
+        <div class="text-muted text-center">Loading<span class="waiting-dots"></span></div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" onclick="adminLogout()">Log out</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Question Editor
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-editor" class="page">
+    <div class="logo">✨ Party Trivia <small>editor</small></div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="card-title" style="margin:0" id="editor-trivia-title">Editing Trivia</div>
+        <button class="btn btn-ghost btn-sm" onclick="showPage('page-admin-dashboard')">← Back</button>
+      </div>
+      <div id="questions-container" class="gap-col"></div>
+      <button class="btn btn-ghost btn-block mt-12" onclick="addQuestion()">+ Add Question</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚀 Launch Session</div>
+      <div class="text-muted mt-4" style="margin-bottom:14px">When you're done editing, launch a live session to host the game.</div>
+      <button class="btn btn-accent btn-block" onclick="launchSession()">Launch Live Session 🎉</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Admin – Session Lobby (host view)
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-admin-lobby" class="page">
+    <div class="logo">✨ Party Trivia <small>host</small></div>
+
+    <div class="card">
+      <div class="card-title text-center">📱 Scan to Join</div>
+      <div class="qr-wrap"><div id="qr-code"></div></div>
+      <div class="text-muted text-center mt-8" style="margin-bottom:6px">or go to this address and enter:</div>
+      <div class="join-code" id="display-code">——</div>
+      <div class="text-muted text-center mt-8" id="join-url-display"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👥 Players (<span id="admin-player-count">0</span>)</div>
+      <div id="admin-player-list" class="player-list">
+        <div class="text-muted">Waiting for players<span class="waiting-dots"></span></div>
+      </div>
+      <div class="divider" style="margin:16px 0"></div>
+      <button id="start-btn" class="btn btn-green btn-block" onclick="startGame()" disabled>Start Game</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Admin – Question view (host sees progress)
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-admin-question" class="page">
+    <div class="logo">✨ Party Trivia <small>host</small></div>
+
+    <div class="card">
+      <div class="text-muted" id="admin-q-progress" style="margin-bottom:8px"></div>
+      <div class="question-text" id="admin-q-text"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Answers Received</div>
+      <div id="admin-answer-status" class="text-muted">0 / 0</div>
+      <div class="answer-count-bar mt-4">
+        <div class="answer-count-fill" id="admin-answer-bar" style="width:0%"></div>
+      </div>
+      <div class="timer-wrap mt-12">
+        <div class="timer-ring">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="timer-bg" cx="35" cy="35" r="30"/>
+            <circle class="timer-arc" id="admin-timer-arc" cx="35" cy="35" r="30" stroke-dasharray="188.5" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-number" id="admin-timer-num">—</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-block mt-8" onclick="adminSkip()">Skip → Show Results</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Admin – Results view
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-admin-results" class="page">
+    <div class="logo">✨ Party Trivia <small>host</small></div>
+
+    <div class="card">
+      <div class="card-title">✅ Correct Answer</div>
+      <div id="admin-correct-answer" class="question-text" style="color:var(--green)"></div>
+      <div id="admin-result-breakdown" class="mt-12 gap-col"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏆 Leaderboard</div>
+      <div id="admin-leaderboard" class="leaderboard"></div>
+    </div>
+
+    <button class="btn btn-accent btn-block" onclick="adminSkip()">Next →</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Admin – Final
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-admin-final" class="page">
+    <div class="logo">✨ Party Trivia</div>
+    <div class="card text-center">
+      <div class="emoji-big">🏆</div>
+      <div class="card-title" style="justify-content:center;margin-top:8px">Final Results!</div>
+    </div>
+    <div class="card">
+      <div id="admin-final-leaderboard" class="leaderboard"></div>
+    </div>
+    <button class="btn btn-danger btn-block" onclick="endSession()">End Session</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Player – Lobby (waiting)
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-player-lobby" class="page">
+    <div class="logo">✨ Party Trivia</div>
+    <div class="card text-center">
+      <div class="emoji-big">🎉</div>
+      <div class="card-title" style="justify-content:center;margin-top:8px" id="player-trivia-title">Loading<span class="waiting-dots"></span></div>
+      <div class="text-muted mt-4">You're in! Waiting for the host to start<span class="waiting-dots"></span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 Players</div>
+      <div id="player-lobby-list" class="player-list"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Player – Question
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-player-question" class="page">
+    <div class="question-display">
+      <div class="question-progress" id="player-q-progress"></div>
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle class="timer-bg" cx="35" cy="35" r="30"/>
+            <circle class="timer-arc" id="player-timer-arc" cx="35" cy="35" r="30" stroke-dasharray="188.5" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-number" id="player-timer-num">—</div>
+        </div>
+      </div>
+      <div class="question-text" id="player-q-text"></div>
+    </div>
+
+    <div class="answer-grid" id="player-answers"></div>
+
+    <div id="player-answered-msg" class="card text-center hidden">
+      <div class="emoji-big">✅</div>
+      <div class="text-muted mt-4">Answer submitted! Waiting for others<span class="waiting-dots"></span></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Player – Results
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-player-results" class="page">
+    <div class="result-summary card">
+      <div class="result-emoji" id="player-result-emoji"></div>
+      <div class="result-text" id="player-result-text"></div>
+      <div class="text-muted mt-4" id="player-result-sub"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 Leaderboard</div>
+      <div id="player-leaderboard" class="leaderboard"></div>
+    </div>
+    <div class="text-muted text-center">Waiting for host<span class="waiting-dots"></span></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       PAGE: Player – Final
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div id="page-player-final" class="page">
+    <div class="logo">✨ Party Trivia</div>
+    <div class="card text-center">
+      <div class="emoji-big">🎊</div>
+      <div class="card-title" style="justify-content:center;margin-top:8px">Game Over!</div>
+      <div class="text-muted mt-4">Thanks for playing!</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 Final Standings</div>
+      <div id="player-final-leaderboard" class="leaderboard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Error toast ────────────────────────────────────────────────────── -->
+<div id="error-toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const state = {
+  adminToken: null,
+  currentTrivia: null,
+  sessionId: null,
+  playerId: null,
+  playerName: null,
+  ws: null,
+  timerInterval: null,
+  timerEnd: null,
+  isAdmin: false,
+  answerCounts: { answered: 0, total: 0 },
+  lastAnswerIndex: null,
+};
+
+// ─── Utils ─────────────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showError(msg) {
+  const t = document.getElementById('error-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function setHidden(id, hidden) {
+  document.getElementById(id).classList.toggle('hidden', hidden);
+}
+
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    credentials: 'include',
+    ...opts,
+  });
+  return res.json();
+}
+
+// ─── Routing ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(location.search);
+  const joinSession = params.get('join');
+
+  if (joinSession) {
+    // Pre-fill join code
+    document.getElementById('join-code-input').value = joinSession.toUpperCase();
+    showPage('page-home');
+    document.getElementById('join-name').focus();
+    return;
+  }
+
+  // Check if already admin
+  const me = await apiFetch('/api/admin/me');
+  if (me.isAdmin) {
+    state.adminToken = getCookie('adminToken') || 'cookie';
+    showPage('page-admin-dashboard');
+    loadTrivias();
+  } else {
+    showPage('page-home');
+  }
+});
+
+function getCookie(name) {
+  return document.cookie.split('; ').find(r => r.startsWith(name + '='))?.split('=')[1];
+}
+
+// ─── Admin Auth ───────────────────────────────────────────────────────────────
+async function adminLogin() {
+  const username = document.getElementById('admin-username').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+
+  const res = await apiFetch('/api/admin/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (res.ok) {
+    state.adminToken = res.token;
+    showPage('page-admin-dashboard');
+    loadTrivias();
+  } else {
+    errEl.textContent = 'Invalid username or password.';
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function adminLogout() {
+  await apiFetch('/api/admin/logout', { method: 'POST' });
+  state.adminToken = null;
+  showPage('page-admin-login');
+}
+
+// ─── Trivia Management ────────────────────────────────────────────────────────
+async function loadTrivias() {
+  const trivias = await apiFetch('/api/trivias');
+  const el = document.getElementById('trivia-list');
+
+  if (!trivias.length) {
+    el.innerHTML = '<div class="text-muted text-center">No trivias yet — create one above!</div>';
+    return;
+  }
+
+  el.innerHTML = trivias.map(t => `
+    <div class="trivia-item">
+      <div>
+        <div class="trivia-item-title">${esc(t.title)}</div>
+        <div class="trivia-item-meta">${t.questions.length} question${t.questions.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-ghost btn-sm" onclick="openEditor('${t.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTrivia('${t.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function createTrivia() {
+  const title = document.getElementById('new-trivia-title').value.trim();
+  if (!title) return showError('Enter a title first');
+  const t = await apiFetch('/api/trivias', { method: 'POST', body: JSON.stringify({ title }) });
+  document.getElementById('new-trivia-title').value = '';
+  openEditor(t.id);
+}
+
+async function deleteTrivia(id) {
+  if (!confirm('Delete this trivia?')) return;
+  await apiFetch(`/api/trivias/${id}`, { method: 'DELETE' });
+  loadTrivias();
+}
+
+// ─── Question Editor ──────────────────────────────────────────────────────────
+let editorTriviaId = null;
+let editorQuestions = [];
+
+async function openEditor(id) {
+  editorTriviaId = id;
+  const t = await apiFetch(`/api/trivias/${id}`);
+  state.currentTrivia = t;
+  document.getElementById('editor-trivia-title').textContent = `✏️ ${t.title}`;
+  editorQuestions = t.questions.length ? t.questions : [];
+  if (!editorQuestions.length) addQuestion();
+  else renderEditor();
+  showPage('page-editor');
+}
+
+function addQuestion() {
+  editorQuestions.push({
+    text: '',
+    options: ['', '', '', ''],
+    correctIndex: 0,
+    timeLimit: 20,
+    resultTime: 5,
+  });
+  renderEditor();
+}
+
+function renderEditor() {
+  const container = document.getElementById('questions-container');
+  const optLetters = ['A', 'B', 'C', 'D'];
+  const optClasses = ['opt-a', 'opt-b', 'opt-c', 'opt-d'];
+
+  container.innerHTML = editorQuestions.map((q, qi) => `
+    <div class="question-block">
+      <span class="question-number">Q${qi + 1}</span>
+      <div class="field" style="margin-top:10px">
+        <label>Question</label>
+        <textarea placeholder="What is the question?" oninput="editorQuestions[${qi}].text=this.value">${esc(q.text)}</textarea>
+      </div>
+      <div class="options-grid">
+        ${q.options.map((opt, oi) => `
+          <div class="option-row">
+            <span class="option-letter ${optClasses[oi]}">${optLetters[oi]}</span>
+            <input type="text" placeholder="Option ${optLetters[oi]}" value="${esc(opt)}"
+              oninput="editorQuestions[${qi}].options[${oi}]=this.value"/>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <label>Correct Answer</label>
+        <div class="flex-row" style="flex-wrap:wrap;gap:16px;margin-top:4px">
+          ${q.options.map((_, oi) => `
+            <label class="correct-radio">
+              <input type="radio" name="correct-${qi}" value="${oi}" ${q.correctIndex === oi ? 'checked' : ''}
+                onchange="editorQuestions[${qi}].correctIndex=${oi}"/>
+              ${optLetters[oi]}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+      <div class="time-row">
+        <div class="field">
+          <label>⏱ Time limit (seconds)</label>
+          <input type="number" min="5" max="120" value="${q.timeLimit || 20}"
+            oninput="editorQuestions[${qi}].timeLimit=+this.value"/>
+        </div>
+        <div class="field">
+          <label>📊 Show results for (seconds)</label>
+          <input type="number" min="2" max="30" value="${q.resultTime || 5}"
+            oninput="editorQuestions[${qi}].resultTime=+this.value"/>
+        </div>
+      </div>
+      <div class="flex-row flex-end">
+        <button class="btn btn-danger btn-sm" onclick="removeQuestion(${qi})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeQuestion(qi) {
+  editorQuestions.splice(qi, 1);
+  renderEditor();
+}
+
+async function saveQuestions() {
+  if (!editorTriviaId) return;
+  // Validate
+  for (let i = 0; i < editorQuestions.length; i++) {
+    const q = editorQuestions[i];
+    if (!q.text.trim()) { showError(`Q${i+1}: Enter the question text`); return false; }
+    if (q.options.some(o => !o.trim())) { showError(`Q${i+1}: Fill in all 4 options`); return false; }
+  }
+  await apiFetch(`/api/trivias/${editorTriviaId}/questions`, {
+    method: 'PUT',
+    body: JSON.stringify({ questions: editorQuestions }),
+  });
+  return true;
+}
+
+async function launchSession() {
+  if (!editorQuestions.length) return showError('Add at least one question');
+  const saved = await saveQuestions();
+  if (!saved) return;
+
+  const res = await apiFetch(`/api/trivias/${editorTriviaId}/session`, { method: 'POST' });
+  if (!res.sessionId) return showError('Failed to create session');
+  state.sessionId = res.sessionId;
+  state.isAdmin = true;
+  openAdminLobby(res.sessionId);
+}
+
+// ─── Admin Session Lobby ──────────────────────────────────────────────────────
+function openAdminLobby(sessionId) {
+  const joinUrl = `${location.origin}?join=${sessionId}`;
+  document.getElementById('display-code').textContent = sessionId;
+  document.getElementById('join-url-display').textContent = new URL(joinUrl).hostname + '?join=' + sessionId;
+
+  // QR Code
+  const qrEl = document.getElementById('qr-code');
+  qrEl.innerHTML = '';
+  new QRCode(qrEl, { text: joinUrl, width: 160, height: 160, colorDark: '#7c3aed', colorLight: '#ffffff' });
+
+  showPage('page-admin-lobby');
+  connectAdminWS(sessionId);
+}
+
+// ─── WebSocket (Admin) ────────────────────────────────────────────────────────
+function connectAdminWS(sessionId) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}`);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'admin_join', sessionId, token: state.adminToken }));
+    startPing();
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleAdminMessage(msg);
+  };
+
+  ws.onclose = () => {
+    clearInterval(state.pingInterval);
+  };
+}
+
+function handleAdminMessage(msg) {
+  switch (msg.type) {
+    case 'admin_joined':
+      // Already on lobby page; players list will come via lobby_update
+      break;
+
+    case 'lobby_update':
+      renderAdminLobby(msg.players);
+      break;
+
+    case 'question_start':
+      showAdminQuestion(msg.question);
+      break;
+
+    case 'answer_update': {
+      state.answerCounts = { answered: msg.answered, total: msg.total };
+      document.getElementById('admin-answer-status').textContent = `${msg.answered} / ${msg.total} answered`;
+      const pct = msg.total ? (msg.answered / msg.total * 100) : 0;
+      document.getElementById('admin-answer-bar').style.width = pct + '%';
+      break;
+    }
+
+    case 'question_results':
+      showAdminResults(msg.result, msg.leaderboard);
+      break;
+
+    case 'leaderboard':
+      if (msg.isFinal) {
+        showAdminFinal(msg.leaderboard);
+      } else {
+        showAdminResults(null, msg.leaderboard, true);
+      }
+      break;
+
+    case 'game_over':
+      showAdminFinal(msg.leaderboard);
+      break;
+
+    case 'error':
+      showError(msg.message);
+      break;
+  }
+}
+
+function renderAdminLobby(players) {
+  const list = document.getElementById('admin-player-list');
+  const count = document.getElementById('admin-player-count');
+  count.textContent = players.length;
+  const btn = document.getElementById('start-btn');
+
+  if (!players.length) {
+    list.innerHTML = '<div class="text-muted">Waiting for players<span class="waiting-dots"></span></div>';
+    btn.disabled = true;
+    return;
+  }
+
+  list.innerHTML = players.map(p => `<div class="player-chip">🎮 ${esc(p.name)}</div>`).join('');
+  btn.disabled = false;
+}
+
+function showAdminQuestion(q) {
+  stopTimer();
+  document.getElementById('admin-q-progress').textContent = `Question ${q.index + 1} of ${q.total}`;
+  document.getElementById('admin-q-text').textContent = q.text;
+  document.getElementById('admin-answer-status').textContent = `0 / 0 answered`;
+  document.getElementById('admin-answer-bar').style.width = '0%';
+  showPage('page-admin-question');
+  startTimer('admin-timer-arc', 'admin-timer-num', q.timeLimit);
+}
+
+function showAdminResults(result, leaderboard, leaderboardOnly = false) {
+  stopTimer();
+
+  if (!leaderboardOnly && result) {
+    const optLetters = ['A', 'B', 'C', 'D'];
+    document.getElementById('admin-correct-answer').textContent =
+      `${optLetters[result.correctIndex]}: ${state.currentTrivia?.questions[result.questionIndex]?.options[result.correctIndex] || ''}`;
+
+    const breakdown = document.getElementById('admin-result-breakdown');
+    const correct = result.playerResults.filter(p => p.correct).length;
+    const total = result.playerResults.length;
+    breakdown.innerHTML = `
+      <div class="flex-row" style="justify-content:space-between">
+        <span class="text-muted">Correct</span><span style="color:var(--green);font-weight:700">${correct} / ${total}</span>
+      </div>
+    `;
+  }
+
+  renderLeaderboard('admin-leaderboard', leaderboard);
+  showPage('page-admin-results');
+}
+
+function showAdminFinal(leaderboard) {
+  stopTimer();
+  renderLeaderboard('admin-final-leaderboard', leaderboard);
+  showPage('page-admin-final');
+}
+
+function startGame() {
+  state.ws?.send(JSON.stringify({ type: 'start_game' }));
+}
+
+function adminSkip() {
+  state.ws?.send(JSON.stringify({ type: 'skip_results' }));
+}
+
+function endSession() {
+  state.ws?.send(JSON.stringify({ type: 'end_session' }));
+  showPage('page-admin-dashboard');
+  loadTrivias();
+}
+
+// ─── WebSocket (Player) ───────────────────────────────────────────────────────
+function joinGame() {
+  const name = document.getElementById('join-name').value.trim();
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('join-error');
+  errEl.classList.add('hidden');
+
+  if (!name) { errEl.textContent = 'Enter your name'; errEl.classList.remove('hidden'); return; }
+  if (code.length !== 6) { errEl.textContent = 'Enter the 6-character session code'; errEl.classList.remove('hidden'); return; }
+
+  state.playerName = name;
+  state.sessionId = code;
+  connectPlayerWS(code, name);
+}
+
+function connectPlayerWS(sessionId, name) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}`);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'join_lobby', sessionId, name }));
+    startPing();
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handlePlayerMessage(msg);
+  };
+
+  ws.onerror = () => showError('Connection error');
+  ws.onclose = () => clearInterval(state.pingInterval);
+}
+
+function handlePlayerMessage(msg) {
+  switch (msg.type) {
+    case 'joined':
+      state.playerId = msg.playerId;
+      showPage('page-player-lobby');
+      document.getElementById('player-trivia-title').textContent = '🎉 Waiting for host…';
+      break;
+
+    case 'lobby_update':
+      renderPlayerLobby(msg.players);
+      break;
+
+    case 'question_start':
+      showPlayerQuestion(msg.question);
+      break;
+
+    case 'answer_received':
+      state.lastAnswerIndex = msg.answerIndex;
+      disableAnswers();
+      document.getElementById('player-answered-msg').classList.remove('hidden');
+      document.querySelector('.answer-grid')?.classList.add('hidden');
+      break;
+
+    case 'question_results':
+      showPlayerResults(msg.result, msg.leaderboard);
+      break;
+
+    case 'leaderboard':
+      if (msg.isFinal) {
+        showPlayerFinal(msg.leaderboard);
+      } else {
+        showPlayerLeaderboard(msg.leaderboard);
+      }
+      break;
+
+    case 'game_over':
+      showPlayerFinal(msg.leaderboard);
+      break;
+
+    case 'session_ended':
+      stopTimer();
+      showPage('page-home');
+      showError('The host ended the session.');
+      break;
+
+    case 'error':
+      showError(msg.message);
+      showPage('page-home');
+      break;
+  }
+}
+
+function renderPlayerLobby(players) {
+  const list = document.getElementById('player-lobby-list');
+  list.innerHTML = players.map(p =>
+    `<div class="player-chip">${p.name === state.playerName ? '⭐' : '🎮'} ${esc(p.name)}</div>`
+  ).join('');
+}
+
+function showPlayerQuestion(q) {
+  stopTimer();
+  state.lastAnswerIndex = null;
+  document.getElementById('player-q-progress').textContent = `Question ${q.index + 1} of ${q.total}`;
+  document.getElementById('player-q-text').textContent = q.text;
+
+  const optLetters = ['A', 'B', 'C', 'D'];
+  const optClasses = ['answer-btn-a', 'answer-btn-b', 'answer-btn-c', 'answer-btn-d'];
+
+  const grid = document.getElementById('player-answers');
+  grid.innerHTML = q.options.map((opt, i) => `
+    <button class="answer-btn ${optClasses[i]}" onclick="submitAnswer(${i})">
+      <span class="opt-badge">${optLetters[i]}</span>
+      <span>${esc(opt)}</span>
+    </button>
+  `).join('');
+  grid.classList.remove('hidden');
+
+  setHidden('player-answered-msg', true);
+  showPage('page-player-question');
+  startTimer('player-timer-arc', 'player-timer-num', q.timeLimit);
+}
+
+function submitAnswer(index) {
+  if (state.lastAnswerIndex !== null) return;
+  state.ws?.send(JSON.stringify({ type: 'submit_answer', answerIndex: index }));
+}
+
+function disableAnswers() {
+  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+}
+
+function showPlayerResults(result, leaderboard) {
+  stopTimer();
+  const myAnswer = state.lastAnswerIndex;
+  const correct = result.correctIndex;
+  const wasCorrect = myAnswer === correct;
+  const didAnswer = myAnswer !== null;
+
+  document.getElementById('player-result-emoji').textContent = !didAnswer ? '⏰' : wasCorrect ? '🎉' : '😬';
+  document.getElementById('player-result-text').textContent = !didAnswer ? 'Time\'s up!' : wasCorrect ? 'Correct!' : 'Not quite!';
+  document.getElementById('player-result-sub').textContent = !didAnswer ? 'You didn\'t answer in time' : wasCorrect ? 'Nice one!' : `The correct answer was ${['A','B','C','D'][correct]}`;
+
+  renderLeaderboard('player-leaderboard', leaderboard, state.playerName);
+  showPage('page-player-results');
+}
+
+function showPlayerLeaderboard(leaderboard) {
+  renderLeaderboard('player-leaderboard', leaderboard, state.playerName);
+  showPage('page-player-results');
+}
+
+function showPlayerFinal(leaderboard) {
+  stopTimer();
+  renderLeaderboard('player-final-leaderboard', leaderboard, state.playerName);
+  showPage('page-player-final');
+}
+
+// ─── Leaderboard renderer ─────────────────────────────────────────────────────
+function renderLeaderboard(elId, players, highlightName = null) {
+  const el = document.getElementById(elId);
+  const rankClasses = ['gold', 'silver', 'bronze'];
+  el.innerHTML = players.map((p, i) => `
+    <div class="lb-row" style="animation-delay:${i * 60}ms;${p.name === highlightName ? 'border-color:var(--primary2)' : ''}">
+      <div class="lb-rank ${rankClasses[i] || ''}">${i + 1}</div>
+      <div class="lb-name">${p.name === highlightName ? '⭐ ' : ''}${esc(p.name)}</div>
+      <div class="lb-score">${p.score.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+function startTimer(arcId, numId, totalSeconds) {
+  stopTimer();
+  const circumference = 188.5;
+  const arc = document.getElementById(arcId);
+  const num = document.getElementById(numId);
+  let remaining = totalSeconds;
+
+  function tick() {
+    const frac = remaining / totalSeconds;
+    arc.style.strokeDashoffset = circumference * (1 - frac);
+    arc.style.stroke = remaining > totalSeconds * 0.33 ? 'var(--primary2)' : remaining > 5 ? 'var(--accent)' : 'var(--red)';
+    num.textContent = remaining;
+    if (remaining <= 0) { stopTimer(); return; }
+    remaining--;
+  }
+  tick();
+  state.timerInterval = setInterval(tick, 1000);
+}
+
+function stopTimer() {
+  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+}
+
+// ─── Ping/keepalive ───────────────────────────────────────────────────────────
+function startPing() {
+  state.pingInterval = setInterval(() => {
+    if (state.ws?.readyState === WebSocket.OPEN) {
+      state.ws.send(JSON.stringify({ type: 'ping' }));
+    }
+  }, 25000);
+}
+
+// ─── XSS escape ──────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

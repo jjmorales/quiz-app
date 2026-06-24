@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: birthday-trivia
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
