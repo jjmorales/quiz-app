@@ -519,7 +519,10 @@
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="card-title" style="margin:0" id="editor-trivia-title">Editing Trivia</div>
-        <button class="btn btn-ghost btn-sm" onclick="showPage('page-admin-dashboard')">← Back</button>
+        <div class="flex-row">
+          <button class="btn btn-accent btn-sm" onclick="saveAndBack()">Save & Back</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('page-admin-dashboard')">← Back</button>
+        </div>
       </div>
       <div id="questions-container" class="gap-col"></div>
       <button class="btn btn-ghost btn-block mt-12" onclick="addQuestion()">+ Add Question</button>
@@ -562,18 +565,9 @@
   <div id="page-admin-question" class="page">
     <div class="logo">✨ Party Trivia <small>host</small></div>
 
-    <div class="card">
-      <div class="text-muted" id="admin-q-progress" style="margin-bottom:8px"></div>
-      <div class="question-text" id="admin-q-text"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📊 Answers Received</div>
-      <div id="admin-answer-status" class="text-muted">0 / 0</div>
-      <div class="answer-count-bar mt-4">
-        <div class="answer-count-fill" id="admin-answer-bar" style="width:0%"></div>
-      </div>
-      <div class="timer-wrap mt-12">
+    <div class="question-display">
+      <div class="question-progress" id="admin-q-progress"></div>
+      <div class="timer-wrap">
         <div class="timer-ring">
           <svg width="70" height="70" viewBox="0 0 70 70">
             <circle class="timer-bg" cx="35" cy="35" r="30"/>
@@ -581,6 +575,17 @@
           </svg>
           <div class="timer-number" id="admin-timer-num">—</div>
         </div>
+      </div>
+      <div class="question-text" id="admin-q-text"></div>
+    </div>
+
+    <div class="answer-grid" id="admin-answers"></div>
+
+    <div class="card">
+      <div class="card-title">📊 Answers Received</div>
+      <div id="admin-answer-status" class="text-muted">0 / 0</div>
+      <div class="answer-count-bar mt-4">
+        <div class="answer-count-fill" id="admin-answer-bar" style="width:0%"></div>
       </div>
       <button class="btn btn-ghost btn-block mt-8" onclick="adminSkip()">Skip → Show Results</button>
     </div>
@@ -815,6 +820,7 @@ async function loadTrivias() {
         <div class="trivia-item-meta">${t.questions.length} question${t.questions.length !== 1 ? 's' : ''}</div>
       </div>
       <div class="flex-row">
+        <button class="btn btn-accent btn-sm" onclick="startLiveSession('${t.id}')" ${t.questions.length === 0 ? 'disabled title="Add questions first"' : ''}>▶ Start</button>
         <button class="btn btn-ghost btn-sm" onclick="openEditor('${t.id}')">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteTrivia('${t.id}')">Delete</button>
       </div>
@@ -934,12 +940,27 @@ async function saveQuestions() {
   return true;
 }
 
+async function saveAndBack() {
+  const saved = await saveQuestions();
+  if (!saved) return;
+  showPage('page-admin-dashboard');
+  loadTrivias();
+}
+
 async function launchSession() {
   if (!editorQuestions.length) return showError('Add at least one question');
   const saved = await saveQuestions();
   if (!saved) return;
 
   const res = await apiFetch(`/api/trivias/${editorTriviaId}/session`, { method: 'POST' });
+  if (!res.sessionId) return showError('Failed to create session');
+  state.sessionId = res.sessionId;
+  state.isAdmin = true;
+  openAdminLobby(res.sessionId);
+}
+
+async function startLiveSession(triviaId) {
+  const res = await apiFetch(`/api/trivias/${triviaId}/session`, { method: 'POST' });
   if (!res.sessionId) return showError('Failed to create session');
   state.sessionId = res.sessionId;
   state.isAdmin = true;
@@ -1048,6 +1069,16 @@ function showAdminQuestion(q) {
   document.getElementById('admin-q-text').textContent = q.text;
   document.getElementById('admin-answer-status').textContent = `0 / 0 answered`;
   document.getElementById('admin-answer-bar').style.width = '0%';
+
+  const optLetters = ['A', 'B', 'C', 'D'];
+  const optClasses = ['answer-btn-a', 'answer-btn-b', 'answer-btn-c', 'answer-btn-d'];
+  document.getElementById('admin-answers').innerHTML = q.options.map((opt, i) => `
+    <button class="answer-btn ${optClasses[i]}" disabled>
+      <span class="opt-badge">${optLetters[i]}</span>
+      <span>${esc(opt)}</span>
+    </button>
+  `).join('');
+
   showPage('page-admin-question');
   startTimer('admin-timer-arc', 'admin-timer-num', q.timeLimit);
 }
