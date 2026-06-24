@@ -3,50 +3,53 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>✨ Party Trivia</title>
+<title>Party Trivia</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  /* ── Tokens ────────────────────────────────────────────────────── */
+  /* ── Tokens ── Y2K Disney Channel palette ──────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;900&display=swap');
+
   :root {
-    --bg:       #0d0d1a;
-    --surface:  #1a1a2e;
-    --card:     #16213e;
-    --border:   #2a2a4a;
-    --text:     #f0eeff;
-    --muted:    #8888aa;
-    --primary:  #7c3aed;
-    --primary2: #a855f7;
-    --accent:   #f59e0b;
-    --green:    #10b981;
-    --red:      #ef4444;
-    --blue:     #3b82f6;
-    --pink:     #ec4899;
-    --radius:   14px;
-    --shadow:   0 4px 32px rgba(124,58,237,0.18);
+    --bg:       #fff0fa;
+    --surface:  #ffffff;
+    --card:     #ffffff;
+    --border:   #f9a8d4;
+    --text:     #3b0764;
+    --muted:    #9333ea;
+    --primary:  #e91e8c;
+    --primary2: #ff3eb5;
+    --accent:   #ffcc00;
+    --green:    #39d353;
+    --red:      #ff3b3b;
+    --blue:     #00b4ff;
+    --pink:     #ff6fcf;
+    --orange:   #ff6a00;
+    --lime:     #aaff00;
+    --radius:   20px;
+    --shadow:   0 6px 0 #e91e8c, 0 8px 24px rgba(233,30,140,0.18);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100dvh;
     overflow-x: hidden;
   }
 
-  /* ── Stars bg ──────────────────────────────────────────────────── */
+  /* ── Bubbly tiled bg ───────────────────────────────────────────── */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.35) 0%, transparent 100%),
-      radial-gradient(1px 1px at 40% 75%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 10% 65%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 75% 85%, rgba(255,255,255,0.25) 0%, transparent 100%);
+      radial-gradient(circle at 10% 20%, rgba(255,110,207,0.18) 0%, transparent 50%),
+      radial-gradient(circle at 85% 10%, rgba(0,180,255,0.14) 0%, transparent 45%),
+      radial-gradient(circle at 50% 80%, rgba(255,204,0,0.16) 0%, transparent 50%),
+      radial-gradient(circle at 90% 75%, rgba(57,211,83,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 5% 90%,  rgba(233,30,140,0.10) 0%, transparent 40%);
     pointer-events: none;
     z-index: 0;
   }
@@ -67,106 +70,156 @@
 
   @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
 
-  /* ── Components ──────────────────────────────────────────────────── */
+  /* ── Logo ────────────────────────────────────────────────────────── */
   .logo {
-    font-size: 2.2rem;
-    font-weight: 900;
+    font-family: 'Fredoka One', 'Nunito', cursive;
+    font-size: 2.6rem;
+    font-weight: 400;
     text-align: center;
-    letter-spacing: -1px;
-    background: linear-gradient(135deg, var(--primary2), var(--accent));
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 50%, var(--accent) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     padding: 24px 0 8px;
+    filter: drop-shadow(0 2px 0 rgba(233,30,140,0.2));
   }
 
-  .logo small { font-size: .55em; display: block; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; opacity: .8; }
+  .logo small {
+    font-family: 'Nunito', sans-serif;
+    font-size: .45em;
+    display: block;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--orange), var(--primary2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 1;
+  }
 
+  /* ── Card ────────────────────────────────────────────────────────── */
   .card {
     background: var(--card);
-    border: 1px solid var(--border);
+    border: 3px solid var(--primary);
     border-radius: var(--radius);
     padding: 24px;
     box-shadow: var(--shadow);
   }
 
   .card-title {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: .5px;
     margin-bottom: 16px;
-    color: var(--primary2);
+    color: var(--primary);
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
+  /* ── Inputs ──────────────────────────────────────────────────────── */
   input[type=text], input[type=password], input[type=number], textarea {
     width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    background: #fff0fa;
+    border: 2px solid #f9a8d4;
+    border-radius: 12px;
     color: var(--text);
     padding: 12px 14px;
     font-size: 1rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
     outline: none;
-    transition: border-color .2s;
+    transition: border-color .2s, box-shadow .2s;
   }
-  input:focus, textarea:focus { border-color: var(--primary); }
+  input:focus, textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(233,30,140,0.15);
+  }
   textarea { resize: vertical; min-height: 80px; font-family: inherit; }
 
-  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+  label { display: block; font-size: .85rem; font-weight: 900; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
 
   .field { display: flex; flex-direction: column; gap: 4px; }
 
+  /* ── Buttons ─────────────────────────────────────────────────────── */
   .btn {
-    padding: 12px 24px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 700;
-    font-size: 1rem;
+    padding: 13px 26px;
+    border-radius: 50px;
+    border: 3px solid transparent;
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400;
+    font-size: 1.05rem;
+    letter-spacing: .5px;
     cursor: pointer;
-    transition: transform .1s, opacity .2s;
+    transition: transform .1s, box-shadow .15s;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
   }
-  .btn:active { transform: scale(.97); }
-  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .btn:active { transform: scale(.96) translateY(2px); box-shadow: none !important; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
-  .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary2)); color: #fff; }
-  .btn-accent  { background: linear-gradient(135deg, var(--accent), #fbbf24); color: #000; }
-  .btn-ghost   { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-  .btn-danger  { background: var(--red); color: #fff; }
-  .btn-green   { background: var(--green); color: #fff; }
-  .btn-block   { width: 100%; }
-
-  .btn-sm { padding: 8px 16px; font-size: .85rem; border-radius: 8px; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary2));
+    color: #fff;
+    border-color: #c01472;
+    box-shadow: 0 5px 0 #c01472;
+  }
+  .btn-accent {
+    background: linear-gradient(135deg, var(--accent), #ffaa00);
+    color: #3b0764;
+    border-color: #cc9900;
+    box-shadow: 0 5px 0 #cc9900;
+  }
+  .btn-ghost {
+    background: #fff;
+    color: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 4px 0 #f9a8d4;
+  }
+  .btn-danger {
+    background: var(--red);
+    color: #fff;
+    border-color: #cc0000;
+    box-shadow: 0 5px 0 #cc0000;
+  }
+  .btn-green {
+    background: var(--green);
+    color: #fff;
+    border-color: #1fa83a;
+    box-shadow: 0 5px 0 #1fa83a;
+  }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 8px 18px; font-size: .9rem; }
 
   /* ── Alert / toast ──────────────────────────────────────────────── */
-  .alert { padding: 12px 16px; border-radius: 8px; font-size: .9rem; }
-  .alert-error { background: rgba(239,68,68,.15); border: 1px solid var(--red); color: #fca5a5; }
-
+  .alert { padding: 12px 16px; border-radius: 12px; font-size: .9rem; font-weight: 700; }
+  .alert-error { background: #ffe4e6; border: 2px solid var(--red); color: #b91c1c; }
 
   /* ── Trivia list ────────────────────────────────────────────────── */
   .trivia-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: #fff0fa;
+    border: 2px solid #f9a8d4;
+    border-radius: 16px;
     padding: 14px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
   }
-  .trivia-item-title { font-weight: 700; font-size: 1rem; }
-  .trivia-item-meta  { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+  .trivia-item-title { font-weight: 900; font-size: 1rem; color: var(--text); }
+  .trivia-item-meta  { font-size: .8rem; color: var(--muted); margin-top: 2px; font-weight: 700; }
 
   /* ── Question editor ────────────────────────────────────────────── */
   .question-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: #fff0fa;
+    border: 2px solid #f9a8d4;
+    border-radius: 16px;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -176,32 +229,36 @@
 
   .question-number {
     position: absolute;
-    top: -10px;
+    top: -12px;
     left: 14px;
-    background: var(--primary);
+    background: linear-gradient(90deg, var(--primary), var(--blue));
     color: #fff;
-    font-size: .72rem;
-    font-weight: 700;
-    padding: 2px 10px;
+    font-family: 'Fredoka One', cursive;
+    font-size: .8rem;
+    font-weight: 400;
+    padding: 3px 14px;
     border-radius: 20px;
     letter-spacing: 1px;
     text-transform: uppercase;
+    box-shadow: 0 3px 0 rgba(233,30,140,0.3);
   }
 
   .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
   .option-row { display: flex; align-items: center; gap: 8px; }
   .option-letter {
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 30px; height: 30px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: .8rem; flex-shrink: 0;
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400; font-size: .9rem; flex-shrink: 0;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.2);
   }
-  .opt-a { background: #3b82f6; }
-  .opt-b { background: #ec4899; }
-  .opt-c { background: var(--accent); color: #000; }
-  .opt-d { background: var(--green); }
+  .opt-a { background: var(--blue); color: #fff; }
+  .opt-b { background: var(--pink); color: #fff; }
+  .opt-c { background: var(--accent); color: #3b0764; }
+  .opt-d { background: var(--green); color: #fff; }
 
-  .correct-radio { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); cursor: pointer; }
+  .correct-radio { display: flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 700; color: var(--muted); cursor: pointer; }
   .correct-radio input { accent-color: var(--green); width: 16px; height: 16px; }
 
   .time-row { display: flex; gap: 12px; }
@@ -209,12 +266,16 @@
 
   /* ── Session lobby ──────────────────────────────────────────────── */
   .join-code {
-    font-size: 3rem;
-    font-weight: 900;
-    letter-spacing: 6px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 3.2rem;
+    font-weight: 400;
+    letter-spacing: 10px;
     text-align: center;
-    color: var(--accent);
-    text-shadow: 0 0 30px rgba(245,158,11,.4);
+    background: linear-gradient(90deg, var(--primary), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 3px 0 rgba(233,30,140,0.2));
   }
 
   .qr-wrap {
@@ -223,7 +284,7 @@
     padding: 12px;
   }
 
-  #qr-code canvas, #qr-code img { border-radius: 10px; }
+  #qr-code canvas, #qr-code img { border-radius: 16px; border: 3px solid var(--pink); }
 
   .player-list {
     display: flex;
@@ -232,34 +293,47 @@
   }
 
   .player-chip {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 6px 14px;
+    background: linear-gradient(135deg, #fff0fa, #e0f7ff);
+    border: 2px solid var(--pink);
+    border-radius: 50px;
+    padding: 6px 16px;
     font-size: .85rem;
-    font-weight: 600;
+    font-weight: 900;
+    color: var(--text);
     animation: popIn .25s ease;
+    box-shadow: 0 3px 0 #f9a8d4;
   }
 
   @keyframes popIn { from { opacity:0; transform: scale(.8); } to { opacity:1; transform: scale(1); } }
 
-  /* ── Question display (player) ──────────────────────────────────── */
+  /* ── Question display ───────────────────────────────────────────── */
   .question-display {
-    background: var(--card);
+    background: linear-gradient(135deg, #fff0fa, #e0f7ff);
     border-radius: var(--radius);
     padding: 28px 24px;
     text-align: center;
-    border: 1px solid var(--border);
+    border: 3px solid var(--primary);
+    box-shadow: 0 6px 0 #e91e8c;
   }
 
   .question-text {
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    font-weight: 400;
     line-height: 1.4;
     margin-bottom: 8px;
+    color: var(--text);
+    letter-spacing: .5px;
   }
 
-  .question-progress { color: var(--muted); font-size: .85rem; margin-bottom: 20px; }
+  .question-progress {
+    color: var(--muted);
+    font-size: .85rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
 
   /* ── Timer ──────────────────────────────────────────────────────── */
   .timer-wrap {
@@ -272,54 +346,66 @@
 
   .timer-ring { position: relative; width: 70px; height: 70px; }
   .timer-ring svg { transform: rotate(-90deg); }
-  .timer-ring circle { fill: none; stroke-width: 5; }
-  .timer-bg  { stroke: var(--border); }
+  .timer-ring circle { fill: none; stroke-width: 6; }
+  .timer-bg  { stroke: #f9a8d4; }
   .timer-arc { stroke: var(--primary2); transition: stroke-dashoffset .9s linear, stroke .3s; stroke-linecap: round; }
   .timer-number {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.4rem; font-weight: 900; color: var(--text);
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem; font-weight: 400; color: var(--text);
   }
 
-  /* ── Answer options (player) ────────────────────────────────────── */
-  .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* ── Answer buttons ─────────────────────────────────────────────── */
+  .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
   .answer-btn {
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: 12px;
+    background: #ffffff;
+    border: 3px solid #f9a8d4;
+    border-radius: 18px;
     padding: 18px 12px;
     cursor: pointer;
+    font-family: 'Nunito', sans-serif;
     font-size: .95rem;
-    font-weight: 600;
+    font-weight: 900;
     color: var(--text);
     text-align: center;
-    transition: transform .1s, border-color .15s, background .15s;
+    transition: transform .1s, border-color .15s, background .15s, box-shadow .15s;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
     min-height: 80px;
     justify-content: center;
+    box-shadow: 0 4px 0 #f9a8d4;
   }
 
-  .answer-btn:hover:not(:disabled) { transform: scale(1.03); border-color: var(--primary); }
-  .answer-btn:active:not(:disabled) { transform: scale(.97); }
+  .answer-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); box-shadow: 0 7px 0 #f9a8d4; }
+  .answer-btn:active:not(:disabled) { transform: scale(.97) translateY(2px); box-shadow: 0 2px 0 #f9a8d4; }
   .answer-btn:disabled { cursor: default; }
 
   .answer-btn .opt-badge {
-    width: 30px; height: 30px;
-    border-radius: 8px;
+    width: 32px; height: 32px;
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: .9rem;
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400; font-size: 1rem;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15);
   }
 
-  .answer-btn.correct    { border-color: var(--green);    background: rgba(16,185,129,.2); }
+  .answer-btn.correct { border-color: var(--green); background: #d1fae5; box-shadow: 0 4px 0 #1fa83a; }
 
-  .answer-btn-a .opt-badge { background: #3b82f6; }
-  .answer-btn-b .opt-badge { background: #ec4899; }
-  .answer-btn-c .opt-badge { background: var(--accent); color: #000; }
-  .answer-btn-d .opt-badge { background: var(--green); }
+  .answer-btn-a { border-color: var(--blue); box-shadow: 0 4px 0 #007bbb; }
+  .answer-btn-a .opt-badge { background: var(--blue); color: #fff; }
+
+  .answer-btn-b { border-color: var(--pink); box-shadow: 0 4px 0 #cc3da8; }
+  .answer-btn-b .opt-badge { background: var(--pink); color: #fff; }
+
+  .answer-btn-c { border-color: var(--accent); box-shadow: 0 4px 0 #cc9900; }
+  .answer-btn-c .opt-badge { background: var(--accent); color: #3b0764; }
+
+  .answer-btn-d { border-color: var(--green); box-shadow: 0 4px 0 #1fa83a; }
+  .answer-btn-d .opt-badge { background: var(--green); color: #fff; }
 
   /* ── Leaderboard ────────────────────────────────────────────────── */
   .leaderboard { display: flex; flex-direction: column; gap: 10px; }
@@ -328,29 +414,35 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: #fff0fa;
+    border: 2px solid #f9a8d4;
+    border-radius: 14px;
     padding: 12px 16px;
     animation: slideIn .3s ease both;
+    box-shadow: 0 3px 0 #f9a8d4;
   }
 
   @keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: none; } }
 
   .lb-rank {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: var(--border);
+    background: #f9a8d4;
+    color: var(--text);
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: .9rem; flex-shrink: 0;
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400; font-size: 1rem; flex-shrink: 0;
   }
-  .lb-rank.gold   { background: var(--accent); color: #000; }
-  .lb-rank.silver { background: #9ca3af; color: #000; }
-  .lb-rank.bronze { background: #b45309; color: #fff; }
+  .lb-rank.gold   { background: var(--accent); color: #3b0764; box-shadow: 0 3px 0 #cc9900; }
+  .lb-rank.silver { background: #c0c0c0; color: #fff; box-shadow: 0 3px 0 #999; }
+  .lb-rank.bronze { background: #cd7f32; color: #fff; box-shadow: 0 3px 0 #8b5524; }
 
-  .lb-name  { flex: 1; font-weight: 700; }
-  .lb-score { font-weight: 900; color: var(--accent); font-size: 1.05rem; }
+  .lb-name  { flex: 1; font-weight: 900; color: var(--text); }
+  .lb-score {
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400; color: var(--primary); font-size: 1.1rem;
+  }
 
   /* ── Result screen ──────────────────────────────────────────────── */
   .result-summary {
@@ -359,9 +451,9 @@
     border-radius: var(--radius);
   }
   .result-emoji { font-size: 3.5rem; margin-bottom: 8px; }
-  .result-text  { font-size: 1.2rem; font-weight: 700; }
+  .result-text  { font-family: 'Fredoka One', cursive; font-size: 1.4rem; font-weight: 400; color: var(--primary); }
 
-  /* ── Waiting screen ─────────────────────────────────────────────── */
+  /* ── Waiting dots ───────────────────────────────────────────────── */
   .waiting-dots::after {
     content: '';
     animation: dots 1.4s infinite;
@@ -372,17 +464,17 @@
     66%  { content: '...'; }
   }
 
-  /* ── Admin panel tabs ───────────────────────────────────────────── */
+  /* ── Answer count bar ───────────────────────────────────────────── */
   .answer-count-bar {
-    background: var(--surface);
+    background: #f9a8d4;
     border-radius: 30px;
-    height: 8px;
+    height: 10px;
     overflow: hidden;
     margin-top: 8px;
   }
   .answer-count-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--primary2));
+    background: linear-gradient(90deg, var(--primary), var(--blue));
     border-radius: 30px;
     transition: width .3s ease;
   }
@@ -394,40 +486,58 @@
   .mt-4       { margin-top: 4px; }
   .mt-8       { margin-top: 8px; }
   .mt-12      { margin-top: 12px; }
-  .text-muted { color: var(--muted); font-size: .85rem; }
+  .text-muted { color: var(--muted); font-size: .85rem; font-weight: 700; }
   .text-center{ text-align: center; }
-  .divider    { height: 1px; background: var(--border); }
+  .divider    { height: 2px; background: #f9a8d4; }
   .hidden     { display: none !important; }
   .emoji-big  { font-size: 2rem; }
-  .badge      { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
-  .badge-purple { background: rgba(124,58,237,.3); color: var(--primary2); }
+  .badge      { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: .75rem; font-weight: 900; }
+  .badge-purple { background: rgba(233,30,140,0.12); color: var(--primary); border: 1px solid var(--pink); }
   .gap-col    { display: flex; flex-direction: column; gap: 12px; }
 
-  /* ── Error boundary ─────────────────────────────────────────────── */
+  /* ── Error toast ─────────────────────────────────────────────────── */
   #error-toast {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: #1f1f2e;
-    border: 1px solid var(--red);
-    color: #fca5a5;
-    padding: 12px 20px;
-    border-radius: 10px;
+    background: #fff;
+    border: 3px solid var(--red);
+    color: #b91c1c;
+    padding: 12px 24px;
+    border-radius: 16px;
     font-size: .9rem;
+    font-weight: 900;
     z-index: 999;
     transition: transform .3s ease;
     text-align: center;
     max-width: 320px;
+    box-shadow: 0 5px 0 #cc0000;
   }
   #error-toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Icon helpers ────────────────────────────────────────────────── */
+  .icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .logo-icon {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: .1em;
+  }
 
   @media (max-width: 480px) {
     .answer-grid  { grid-template-columns: 1fr; }
     .options-grid { grid-template-columns: 1fr; }
-    .question-text { font-size: 1.15rem; }
+    .question-text { font-size: 1.2rem; }
     .join-code { font-size: 2.2rem; }
-    .logo { font-size: 1.8rem; }
+    .logo { font-size: 2rem; }
   }
 </style>
 </head>
@@ -437,10 +547,10 @@
        PAGE: Home / Route selector
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-home" class="page">
-    <div class="logo">✨ Party Trivia <small>birthday edition</small></div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>birthday edition</small></div>
 
     <div class="card">
-      <div class="card-title">🎮 Join a Game</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="12" rx="4" fill="#00b4ff" stroke="#007bbb" stroke-width="1.5"/><circle cx="7" cy="13" r="2" fill="#fff"/><rect x="13" y="11" width="1.5" height="4" rx=".75" fill="#fff"/><rect x="11.5" y="12.5" width="4" height="1.5" rx=".75" fill="#fff"/><path d="M6 4l1.5 3M18 4l-1.5 3" stroke="#00b4ff" stroke-width="1.5" stroke-linecap="round"/></svg> Join a Game</div>
       <div class="field">
         <label>Enter your name</label>
         <input id="join-name" type="text" placeholder="Your name" maxlength="20"/>
@@ -450,11 +560,11 @@
         <input id="join-code-input" type="text" placeholder="ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;font-weight:700"/>
       </div>
       <div id="join-error" class="alert alert-error hidden mt-8"></div>
-      <button class="btn btn-accent btn-block mt-12" onclick="joinGame()">Join Game 🎉</button>
+      <button class="btn btn-accent btn-block mt-12" onclick="joinGame()">Join Game <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z" fill="#ffcc00" stroke="#cc9900" stroke-width="1.5"/><path d="M8 12l3 3 5-5" stroke="#3b0764" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
 
     <div class="card">
-      <div class="card-title">🔐 Admin</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="10" rx="3" fill="#9333ea" stroke="#6b21a8" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="#9333ea" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#ffcc00"/></svg> Admin</div>
       <div class="flex-row flex-center">
         <button class="btn btn-ghost" onclick="showPage('page-admin-login')">Admin Login</button>
       </div>
@@ -465,9 +575,9 @@
        PAGE: Admin Login
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-admin-login" class="page">
-    <div class="logo">✨ Party Trivia</div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad2)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad2" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia</div>
     <div class="card">
-      <div class="card-title">🔐 Admin Login</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="10" rx="3" fill="#9333ea" stroke="#6b21a8" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="#9333ea" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#ffcc00"/></svg> Admin Login</div>
       <div class="gap-col">
         <div class="field">
           <label>Username</label>
@@ -479,7 +589,7 @@
         </div>
         <div id="login-error" class="alert alert-error hidden"></div>
         <button class="btn btn-primary btn-block" onclick="adminLogin()">Login</button>
-        <button class="btn btn-ghost btn-block" onclick="showPage('page-home')">← Back</button>
+        <button class="btn btn-ghost btn-block" onclick="showPage('page-home')"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Back</button>
       </div>
     </div>
   </div>
@@ -488,10 +598,10 @@
        PAGE: Admin Dashboard (trivia list)
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-admin-dashboard" class="page">
-    <div class="logo">✨ Party Trivia <small>admin</small></div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad3)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad3" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>admin</small></div>
 
     <div class="card">
-      <div class="card-title">➕ New Trivia</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#ff3eb5" stroke="#c01472" stroke-width="1.5"/><path d="M12 7v10M7 12h10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg> New Trivia</div>
       <div class="flex-row">
         <input id="new-trivia-title" type="text" placeholder="Trivia title (e.g. Taylor's Birthday Trivia!)"/>
         <button class="btn btn-primary" style="flex-shrink:0" onclick="createTrivia()">Create</button>
@@ -499,7 +609,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">📋 Your Trivias</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" fill="#fff" stroke="#e91e8c" stroke-width="1.5"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#e91e8c" stroke-width="1.5" stroke-linecap="round"/><rect x="4" y="3" width="4" height="18" rx="2" fill="#ff6fcf" opacity=".3"/></svg> Your Trivias</div>
       <div id="trivia-list" class="gap-col">
         <div class="text-muted text-center">Loading<span class="waiting-dots"></span></div>
       </div>
@@ -512,14 +622,14 @@
        PAGE: Question Editor
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-editor" class="page">
-    <div class="logo">✨ Party Trivia <small>editor</small></div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad4)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad4" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>editor</small></div>
 
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="card-title" style="margin:0" id="editor-trivia-title">Editing Trivia</div>
         <div class="flex-row">
           <button class="btn btn-accent btn-sm" onclick="saveAndBack()">Save & Back</button>
-          <button class="btn btn-ghost btn-sm" onclick="showPage('page-admin-dashboard')">← Back</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('page-admin-dashboard')"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Back</button>
         </div>
       </div>
       <div id="questions-container" class="gap-col"></div>
@@ -527,9 +637,9 @@
     </div>
 
     <div class="card">
-      <div class="card-title">🚀 Launch Session</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 2C9 7 7 10 7 14a5 5 0 0010 0c0-4-2-7-5-12z" fill="#ff6a00" stroke="#cc4400" stroke-width="1.2"/><path d="M10 20c0 1.1.9 2 2 2s2-.9 2-2" stroke="#cc4400" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="13" r="2" fill="#ffcc00"/></svg> Launch Session</div>
       <div class="text-muted mt-4" style="margin-bottom:14px">When you're done editing, launch a live session to host the game.</div>
-      <button class="btn btn-accent btn-block" onclick="launchSession()">Launch Live Session 🎉</button>
+      <button class="btn btn-accent btn-block" onclick="launchSession()">Launch Live Session <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z" fill="#ffcc00" stroke="#cc9900" stroke-width="1.5"/><path d="M8 12l3 3 5-5" stroke="#3b0764" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
   </div>
 
@@ -537,10 +647,10 @@
        PAGE: Admin – Session Lobby (host view)
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-admin-lobby" class="page">
-    <div class="logo">✨ Party Trivia <small>host</small></div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad5)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad5" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>host</small></div>
 
     <div class="card">
-      <div class="card-title text-center">📱 Scan to Join</div>
+      <div class="card-title text-center"><svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="3" fill="#fff" stroke="#e91e8c" stroke-width="1.5"/><rect x="8" y="5" width="8" height="5" rx="1.5" fill="#ff6fcf" opacity=".5"/><circle cx="12" cy="17" r="1.5" fill="#e91e8c"/><path d="M9 13h6" stroke="#e91e8c" stroke-width="1.5" stroke-linecap="round"/></svg> Scan to Join</div>
       <div class="qr-wrap"><div id="qr-code"></div></div>
       <div class="text-muted text-center mt-8" style="margin-bottom:6px">or go to this address and enter:</div>
       <div class="join-code" id="display-code">——</div>
@@ -548,7 +658,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">👥 Players (<span id="admin-player-count">0</span>)</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="3.5" fill="#ff6fcf" stroke="#c01472" stroke-width="1.2"/><circle cx="16" cy="8" r="2.5" fill="#00b4ff" stroke="#007bbb" stroke-width="1.2"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M16 14c2.5.3 5 1.9 5 4" stroke="#00b4ff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg> Players (<span id="admin-player-count">0</span>)</div>
       <div id="admin-player-list" class="player-list">
         <div class="text-muted">Waiting for players<span class="waiting-dots"></span></div>
       </div>
@@ -561,7 +671,7 @@
        PAGE: Admin – Question view (host sees progress)
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-admin-question" class="page">
-    <div class="logo">✨ Party Trivia <small>host</small></div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad6)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad6" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>host</small></div>
 
     <div class="question-display">
       <div class="question-progress" id="admin-q-progress"></div>
@@ -580,12 +690,12 @@
     <div class="answer-grid" id="admin-answers"></div>
 
     <div class="card">
-      <div class="card-title">📊 Answers Received</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#fff" stroke="#e91e8c" stroke-width="1.5"/><rect x="6" y="14" width="3" height="5" rx="1" fill="#00b4ff"/><rect x="10.5" y="10" width="3" height="9" rx="1" fill="#ff6fcf"/><rect x="15" y="7" width="3" height="12" rx="1" fill="#ffcc00"/></svg> Answers Received</div>
       <div id="admin-answer-status" class="text-muted">0 / 0</div>
       <div class="answer-count-bar mt-4">
         <div class="answer-count-fill" id="admin-answer-bar" style="width:0%"></div>
       </div>
-      <button class="btn btn-ghost btn-block mt-8" onclick="adminSkip()">Skip → Show Results</button>
+      <button class="btn btn-ghost btn-block mt-8" onclick="adminSkip()">Skip <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Show Results</button>
     </div>
   </div>
 
@@ -593,29 +703,29 @@
        PAGE: Admin – Results view
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-admin-results" class="page">
-    <div class="logo">✨ Party Trivia <small>host</small></div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad7)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad7" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>host</small></div>
 
     <div class="card">
-      <div class="card-title">✅ Correct Answer</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Correct Answer</div>
       <div id="admin-correct-answer" class="question-text" style="color:var(--green)"></div>
       <div id="admin-result-breakdown" class="mt-12 gap-col"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">🏆 Leaderboard</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg> Leaderboard</div>
       <div id="admin-leaderboard" class="leaderboard"></div>
     </div>
 
-    <button class="btn btn-accent btn-block" onclick="adminSkip()">Next →</button>
+    <button class="btn btn-accent btn-block" onclick="adminSkip()">Next <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
 
   <!-- ════════════════════════════════════════════════════════════════
        PAGE: Admin – Final
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-admin-final" class="page">
-    <div class="logo">✨ Party Trivia</div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad8)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad8" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia</div>
     <div class="card text-center">
-      <div class="emoji-big">🏆</div>
+      <div class="emoji-big"><svg style="width:3rem;height:3rem" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg></div>
       <div class="card-title" style="justify-content:center;margin-top:8px">Final Results!</div>
     </div>
     <div class="card">
@@ -628,14 +738,14 @@
        PAGE: Player – Lobby (waiting)
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-player-lobby" class="page">
-    <div class="logo">✨ Party Trivia</div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad9)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad9" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia</div>
     <div class="card text-center">
-      <div class="emoji-big">🎉</div>
+      <div class="emoji-big"><svg style="width:3rem;height:3rem" viewBox="0 0 24 24" fill="none"><path d="M12 2c-1 0-2 .5-2 1.5 0 .8.6 1.5 1.5 2L9 8H6l-.5 1.5 1 .5-.5 2.5 2 1L9 16h6l.5-2.5 2-1-.5-2.5 1-.5L17.5 8H15l-2.5-2.5c.9-.5 1.5-1.2 1.5-2C14 2.5 13 2 12 2z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M9 16l-.5 3h7L15 16" fill="#ff6fcf" stroke="#c01472" stroke-width="1"/><circle cx="9.5" cy="10.5" r="1" fill="#e91e8c"/><circle cx="14.5" cy="10.5" r="1" fill="#e91e8c"/></svg></div>
       <div class="card-title" style="justify-content:center;margin-top:8px" id="player-trivia-title">Loading<span class="waiting-dots"></span></div>
       <div class="text-muted mt-4">You're in! Waiting for the host to start<span class="waiting-dots"></span></div>
     </div>
     <div class="card">
-      <div class="card-title">👥 Players</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="3.5" fill="#ff6fcf" stroke="#c01472" stroke-width="1.2"/><circle cx="16" cy="8" r="2.5" fill="#00b4ff" stroke="#007bbb" stroke-width="1.2"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M16 14c2.5.3 5 1.9 5 4" stroke="#00b4ff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg> Players</div>
       <div id="player-lobby-list" class="player-list"></div>
     </div>
   </div>
@@ -661,7 +771,7 @@
     <div class="answer-grid" id="player-answers"></div>
 
     <div id="player-answered-msg" class="card text-center hidden">
-      <div class="emoji-big">✅</div>
+      <div class="emoji-big"><svg style="width:3rem;height:3rem" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="text-muted mt-4">Answer submitted! Waiting for others<span class="waiting-dots"></span></div>
     </div>
   </div>
@@ -676,7 +786,7 @@
       <div class="text-muted mt-4" id="player-result-sub"></div>
     </div>
     <div class="card">
-      <div class="card-title">🏆 Leaderboard</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg> Leaderboard</div>
       <div id="player-leaderboard" class="leaderboard"></div>
     </div>
     <div class="text-muted text-center">Waiting for host<span class="waiting-dots"></span></div>
@@ -686,14 +796,14 @@
        PAGE: Player – Final
   ═══════════════════════════════════════════════════════════════════ -->
   <div id="page-player-final" class="page">
-    <div class="logo">✨ Party Trivia</div>
+    <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad10)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad10" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia</div>
     <div class="card text-center">
-      <div class="emoji-big">🎊</div>
+      <div class="emoji-big"><svg style="width:3rem;height:3rem" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="8" r="3" fill="#ff6fcf" stroke="#c01472" stroke-width="1"/><circle cx="18" cy="6" r="2.5" fill="#00b4ff" stroke="#007bbb" stroke-width="1"/><circle cx="12" cy="5" r="2" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M6 11v9M18 9v9M12 8v9" stroke="#e91e8c" stroke-width="1.5" stroke-dasharray="2 2" stroke-linecap="round"/><path d="M4 20h16" stroke="#9333ea" stroke-width="2" stroke-linecap="round"/></svg></div>
       <div class="card-title" style="justify-content:center;margin-top:8px">Game Over!</div>
       <div class="text-muted mt-4">Thanks for playing!</div>
     </div>
     <div class="card">
-      <div class="card-title">🏆 Final Standings</div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg> Final Standings</div>
       <div id="player-final-leaderboard" class="leaderboard"></div>
     </div>
   </div>
@@ -901,12 +1011,12 @@ function renderEditor() {
       </div>
       <div class="time-row">
         <div class="field">
-          <label>⏱ Time limit (seconds)</label>
+          <label><svg class="icon" style="vertical-align:middle;width:14px;height:14px" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" fill="#fff" stroke="#e91e8c" stroke-width="1.8"/><path d="M12 9v4l2.5 2.5" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round"/><path d="M9 3h6" stroke="#e91e8c" stroke-width="1.8" stroke-linecap="round"/></svg> Time limit (seconds)</label>
           <input type="number" min="5" max="120" value="${q.timeLimit || 20}"
             oninput="editorQuestions[${qi}].timeLimit=+this.value"/>
         </div>
         <div class="field">
-          <label>📊 Show results for (seconds)</label>
+          <label><svg class="icon" style="vertical-align:middle;width:14px;height:14px" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#fff" stroke="#9333ea" stroke-width="1.8"/><rect x="6" y="14" width="3" height="5" rx="1" fill="#00b4ff"/><rect x="10.5" y="10" width="3" height="9" rx="1" fill="#ff6fcf"/><rect x="15" y="7" width="3" height="12" rx="1" fill="#ffcc00"/></svg> Show results for (seconds)</label>
           <input type="number" min="2" max="30" value="${q.resultTime || 5}"
             oninput="editorQuestions[${qi}].resultTime=+this.value"/>
         </div>
@@ -974,7 +1084,7 @@ function openAdminLobby(sessionId) {
   // QR Code
   const qrEl = document.getElementById('qr-code');
   qrEl.innerHTML = '';
-  new QRCode(qrEl, { text: joinUrl, width: 160, height: 160, colorDark: '#7c3aed', colorLight: '#ffffff' });
+  new QRCode(qrEl, { text: joinUrl, width: 160, height: 160, colorDark: '#e91e8c', colorLight: '#ffffff' });
 
   showPage('page-admin-lobby');
   connectAdminWS(sessionId);
@@ -1057,7 +1167,7 @@ function renderAdminLobby(players) {
     return;
   }
 
-  list.innerHTML = players.map(p => `<div class="player-chip">🎮 ${esc(p.name)}</div>`).join('');
+  list.innerHTML = players.map(p => `<div class="player-chip"><svg style="width:14px;height:14px;vertical-align:middle" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="12" rx="4" fill="#00b4ff" stroke="#007bbb" stroke-width="1.5"/><circle cx="7" cy="13" r="2" fill="#fff"/><rect x="13" y="11" width="1.5" height="4" rx=".75" fill="#fff"/><rect x="11.5" y="12.5" width="4" height="1.5" rx=".75" fill="#fff"/></svg> ${esc(p.name)}</div>`).join('');
   btn.disabled = false;
 }
 
@@ -1162,7 +1272,7 @@ function handlePlayerMessage(msg) {
     case 'joined':
       state.playerId = msg.playerId;
       showPage('page-player-lobby');
-      document.getElementById('player-trivia-title').textContent = '🎉 Waiting for host…';
+      document.getElementById('player-trivia-title').innerHTML = '<svg style="width:1.1em;height:1.1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> Waiting for host…';
       break;
 
     case 'lobby_update':
@@ -1212,7 +1322,10 @@ function handlePlayerMessage(msg) {
 function renderPlayerLobby(players) {
   const list = document.getElementById('player-lobby-list');
   list.innerHTML = players.map(p =>
-    `<div class="player-chip">${p.name === state.playerName ? '⭐' : '🎮'} ${esc(p.name)}</div>`
+    `<div class="player-chip">${p.name === state.playerName
+    ? '<svg style="width:14px;height:14px;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg>'
+    : '<svg style="width:14px;height:14px;vertical-align:middle" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="12" rx="4" fill="#00b4ff" stroke="#007bbb" stroke-width="1.5"/><circle cx="7" cy="13" r="2" fill="#fff"/><rect x="13" y="11" width="1.5" height="4" rx=".75" fill="#fff"/><rect x="11.5" y="12.5" width="4" height="1.5" rx=".75" fill="#fff"/></svg>'
+  } ${esc(p.name)}</div>`
   ).join('');
 }
 
@@ -1255,7 +1368,10 @@ function showPlayerResults(result, leaderboard) {
   const wasCorrect = myAnswer === correct;
   const didAnswer = myAnswer !== null;
 
-  document.getElementById('player-result-emoji').textContent = !didAnswer ? '⏰' : wasCorrect ? '🎉' : '😬';
+  const iconTimeout = `<svg style="width:3.5rem;height:3.5rem" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" fill="#fff0fa" stroke="#e91e8c" stroke-width="2"/><path d="M12 9v4l2.5 2.5" stroke="#e91e8c" stroke-width="2" stroke-linecap="round"/><path d="M9 3h6" stroke="#e91e8c" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const iconCorrect = `<svg style="width:3.5rem;height:3.5rem" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg>`;
+  const iconWrong   = `<svg style="width:3.5rem;height:3.5rem" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#ffe4e6" stroke="#ff3b3b" stroke-width="2"/><path d="M9 9l6 6M15 9l-6 6" stroke="#ff3b3b" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+  document.getElementById('player-result-emoji').innerHTML = !didAnswer ? iconTimeout : wasCorrect ? iconCorrect : iconWrong;
   document.getElementById('player-result-text').textContent = !didAnswer ? 'Time\'s up!' : wasCorrect ? 'Correct!' : 'Not quite!';
   document.getElementById('player-result-sub').textContent = !didAnswer ? 'You didn\'t answer in time' : wasCorrect ? 'Nice one!' : `The correct answer was ${['A','B','C','D'][correct]}`;
 
@@ -1281,7 +1397,7 @@ function renderLeaderboard(elId, players, highlightName = null) {
   el.innerHTML = players.map((p, i) => `
     <div class="lb-row" style="animation-delay:${i * 60}ms;${p.name === highlightName ? 'border-color:var(--primary2)' : ''}">
       <div class="lb-rank ${rankClasses[i] || ''}">${i + 1}</div>
-      <div class="lb-name">${p.name === highlightName ? '⭐ ' : ''}${esc(p.name)}</div>
+      <div class="lb-name">${p.name === highlightName ? '<svg style="width:1em;height:1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> ' : ''}${esc(p.name)}</div>
       <div class="lb-score">${p.score.toLocaleString()}</div>
     </div>
   `).join('');
