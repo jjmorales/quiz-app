@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -66,7 +68,7 @@ function createSession(triviaId) {
     id,
     triviaId,
     state: 'lobby', // lobby | question | results | leaderboard | final
-    players: {}, // { [playerId]: { id, name, score, lastAnswerTime, answers } }
+    players: {}, // { [playerId]: { id, name, score, ws } }
     currentQuestion: 0,
     questionStartTime: null,
     answers: {}, // { [playerId]: { answerIndex, timeMs } }
@@ -227,7 +229,6 @@ function getQuestionForPlayer(session) {
     index: session.currentQuestion,
     total: trivias[session.triviaId]?.questions.length || 0,
     timeLimit: q.timeLimit,
-    imagUrl: q.imageUrl || null,
   };
 }
 
@@ -246,7 +247,6 @@ function getAnswerResult(session) {
   });
   return {
     correctIndex: q.correctIndex,
-    explanation: q.explanation || null,
     playerResults,
     questionIndex: session.currentQuestion,
     total: trivia?.questions.length || 0,
@@ -351,7 +351,7 @@ wss.on('connection', (ws) => {
         playerId = uuidv4();
         sessionId = msg.sessionId;
         const name = (msg.name || 'Player').slice(0, 20);
-        session.players[playerId] = { id: playerId, name, score: 0, ws, answers: {} };
+        session.players[playerId] = { id: playerId, name, score: 0, ws };
         sendTo(ws, { type: 'joined', playerId, name, sessionId });
         broadcast(session, { type: 'lobby_update', players: getLeaderboard(session) });
         break;

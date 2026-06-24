@@ -146,7 +146,7 @@
   /* ── Alert / toast ──────────────────────────────────────────────── */
   .alert { padding: 12px 16px; border-radius: 8px; font-size: .9rem; }
   .alert-error { background: rgba(239,68,68,.15); border: 1px solid var(--red); color: #fca5a5; }
-  .alert-success { background: rgba(16,185,129,.15); border: 1px solid var(--green); color: #6ee7b7; }
+
 
   /* ── Trivia list ────────────────────────────────────────────────── */
   .trivia-item {
@@ -314,9 +314,7 @@
     font-weight: 900; font-size: .9rem;
   }
 
-  .answer-btn.selected   { border-color: var(--primary2); background: rgba(168,85,247,.15); }
   .answer-btn.correct    { border-color: var(--green);    background: rgba(16,185,129,.2); }
-  .answer-btn.incorrect  { border-color: var(--red);      background: rgba(239,68,68,.12); opacity: .6; }
 
   .answer-btn-a .opt-badge { background: #3b82f6; }
   .answer-btn-b .opt-badge { background: #ec4899; }
@@ -714,7 +712,7 @@ const state = {
   playerName: null,
   ws: null,
   timerInterval: null,
-  timerEnd: null,
+
   isAdmin: false,
   answerCounts: { answered: 0, total: 0 },
   lastAnswerIndex: null,
@@ -763,7 +761,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Check if already admin
   const me = await apiFetch('/api/admin/me');
   if (me.isAdmin) {
-    state.adminToken = getCookie('adminToken') || 'cookie';
+    state.adminToken = getCookie('adminToken');
     showPage('page-admin-dashboard');
     loadTrivias();
   } else {
