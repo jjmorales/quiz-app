@@ -245,11 +245,26 @@ function getAnswerResult(session) {
       correct: ans ? ans.answerIndex === q.correctIndex : false,
     };
   });
+
+  const counts = q.options.map(() => 0);
+  let answeredCount = 0;
+  Object.values(session.answers).forEach(ans => {
+    if (ans && counts[ans.answerIndex] !== undefined) {
+      counts[ans.answerIndex]++;
+      answeredCount++;
+    }
+  });
+  const totalPlayers = Object.keys(session.players).length;
+  const counted = totalPlayers || answeredCount;
+  const percentages = counts.map(c => counted ? Math.round((c / counted) * 100) : 0);
+
   return {
     correctIndex: q.correctIndex,
     playerResults,
     questionIndex: session.currentQuestion,
     total: trivia?.questions.length || 0,
+    counts,
+    percentages,
   };
 }
 

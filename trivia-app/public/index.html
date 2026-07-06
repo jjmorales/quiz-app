@@ -407,6 +407,83 @@
   .answer-btn-d { border-color: var(--green); box-shadow: 0 4px 0 #1fa83a; }
   .answer-btn-d .opt-badge { background: var(--green); color: #fff; }
 
+  /* ── Result bars (answer reveal with vote %) ────────────────────── */
+  .result-bars { display: flex; flex-direction: column; gap: 10px; }
+
+  .result-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 3px solid #f9a8d4;
+    border-radius: 16px;
+    padding: 8px 12px;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+  }
+
+  .result-bar-row.correct { border-color: var(--green); background: #d1fae5; }
+  .result-bar-row.wrong  { border-color: var(--red); background: #ffe4e6; opacity: .85; }
+  .result-bar-row.my-answer { outline: 3px solid var(--text); outline-offset: 2px; }
+
+  .result-bar-row .opt-badge {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400; font-size: 1rem;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+  }
+
+  .result-bar-body { flex: 1; min-width: 0; }
+
+  .result-bar-track {
+    position: relative;
+    height: 34px;
+    background: #fff0fa;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .result-bar-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: var(--primary2);
+    border-radius: 10px;
+    transition: width .6s ease;
+  }
+
+  .result-bar-row.correct .result-bar-fill { background: var(--green); }
+
+  .result-bar-label {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 10px;
+    font-weight: 900;
+    font-size: .9rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .result-bar-pct {
+    font-family: 'Fredoka One', cursive;
+    font-weight: 400;
+    font-size: .95rem;
+    color: var(--text);
+    flex-shrink: 0;
+    width: 3.2em;
+    text-align: right;
+  }
+
+  .result-bar-row.answer-btn-a .opt-badge { background: var(--blue); color: #fff; }
+  .result-bar-row.answer-btn-b .opt-badge { background: var(--pink); color: #fff; }
+  .result-bar-row.answer-btn-c .opt-badge { background: var(--accent); color: #3b0764; }
+  .result-bar-row.answer-btn-d .opt-badge { background: var(--green); color: #fff; }
+
   /* ── Leaderboard ────────────────────────────────────────────────── */
   .leaderboard { display: flex; flex-direction: column; gap: 10px; }
 
@@ -452,6 +529,9 @@
   }
   .result-emoji { font-size: 3.5rem; margin-bottom: 8px; }
   .result-text  { font-family: 'Fredoka One', cursive; font-size: 1.4rem; font-weight: 400; color: var(--primary); }
+
+  .answer-btn.my-answer { outline: 3px solid var(--text); outline-offset: 2px; }
+  .answer-btn.wrong  { border-color: var(--red); background: #ffe4e6; box-shadow: 0 4px 0 #cc0000; opacity: .7; }
 
   /* ── Waiting dots ───────────────────────────────────────────────── */
   .waiting-dots::after {
@@ -706,8 +786,9 @@
     <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad7)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad7" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>host</small></div>
 
     <div class="card">
-      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Correct Answer</div>
-      <div id="admin-correct-answer" class="question-text" style="color:var(--green)"></div>
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Results</div>
+      <div id="admin-result-question" class="question-text" style="margin-bottom:16px"></div>
+      <div class="result-bars" id="admin-result-answers"></div>
       <div id="admin-result-breakdown" class="mt-12 gap-col"></div>
     </div>
 
@@ -786,6 +867,11 @@
       <div class="text-muted mt-4" id="player-result-sub"></div>
     </div>
     <div class="card">
+      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> The Question</div>
+      <div id="player-result-question" class="question-text" style="margin-bottom:16px"></div>
+      <div class="result-bars" id="player-result-answers"></div>
+    </div>
+    <div class="card">
       <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg> Leaderboard</div>
       <div id="player-leaderboard" class="leaderboard"></div>
     </div>
@@ -826,6 +912,7 @@ const state = {
   isAdmin: false,
   answerCounts: { answered: 0, total: 0 },
   lastAnswerIndex: null,
+  currentQuestion: null,
 };
 
 // ─── Utils ─────────────────────────────────────────────────────────────────────
@@ -1173,6 +1260,7 @@ function renderAdminLobby(players) {
 
 function showAdminQuestion(q) {
   stopTimer();
+  state.currentQuestion = q;
   document.getElementById('admin-q-progress').textContent = `Question ${q.index + 1} of ${q.total}`;
   document.getElementById('admin-q-text').textContent = q.text;
   document.getElementById('admin-answer-status').textContent = `0 / 0 answered`;
@@ -1194,10 +1282,13 @@ function showAdminQuestion(q) {
 function showAdminResults(result, leaderboard, leaderboardOnly = false) {
   stopTimer();
 
-  if (!leaderboardOnly && result) {
-    const optLetters = ['A', 'B', 'C', 'D'];
-    document.getElementById('admin-correct-answer').textContent =
-      `${optLetters[result.correctIndex]}: ${state.currentTrivia?.questions[result.questionIndex]?.options[result.correctIndex] || ''}`;
+  const q = state.currentQuestion;
+  const optLetters = ['A', 'B', 'C', 'D'];
+  const optClasses = ['answer-btn-a', 'answer-btn-b', 'answer-btn-c', 'answer-btn-d'];
+
+  if (!leaderboardOnly && result && q) {
+    document.getElementById('admin-result-question').textContent = q.text;
+    document.getElementById('admin-result-answers').innerHTML = renderResultBars(q, result, optLetters, optClasses);
 
     const breakdown = document.getElementById('admin-result-breakdown');
     const correct = result.playerResults.filter(p => p.correct).length;
@@ -1332,6 +1423,7 @@ function renderPlayerLobby(players) {
 function showPlayerQuestion(q) {
   stopTimer();
   state.lastAnswerIndex = null;
+  state.currentQuestion = q;
   document.getElementById('player-q-progress').textContent = `Question ${q.index + 1} of ${q.total}`;
   document.getElementById('player-q-text').textContent = q.text;
 
@@ -1375,6 +1467,14 @@ function showPlayerResults(result, leaderboard) {
   document.getElementById('player-result-text').textContent = !didAnswer ? 'Time\'s up!' : wasCorrect ? 'Correct!' : 'Not quite!';
   document.getElementById('player-result-sub').textContent = !didAnswer ? 'You didn\'t answer in time' : wasCorrect ? 'Nice one!' : `The correct answer was ${['A','B','C','D'][correct]}`;
 
+  const q = state.currentQuestion;
+  if (q) {
+    const optLetters = ['A', 'B', 'C', 'D'];
+    const optClasses = ['answer-btn-a', 'answer-btn-b', 'answer-btn-c', 'answer-btn-d'];
+    document.getElementById('player-result-question').textContent = q.text;
+    document.getElementById('player-result-answers').innerHTML = renderResultBars(q, result, optLetters, optClasses, myAnswer);
+  }
+
   renderLeaderboard('player-leaderboard', leaderboard, state.playerName);
   showPage('page-player-results');
 }
@@ -1388,6 +1488,31 @@ function showPlayerFinal(leaderboard) {
   stopTimer();
   renderLeaderboard('player-final-leaderboard', leaderboard, state.playerName);
   showPage('page-player-final');
+}
+
+// ─── Result bars (answer text + vote % breakdown) ─────────────────────────────
+function renderResultBars(q, result, optLetters, optClasses, myAnswer = null) {
+  const percentages = result.percentages || q.options.map(() => 0);
+  const counts = result.counts || q.options.map(() => 0);
+  return q.options.map((opt, i) => {
+    const isCorrect = i === result.correctIndex;
+    const isMyAnswer = i === myAnswer;
+    const isWrong = isMyAnswer && !isCorrect;
+    let extraClass = isCorrect ? ' correct' : '';
+    if (isWrong) extraClass += ' wrong';
+    if (isMyAnswer) extraClass += ' my-answer';
+    return `
+    <div class="result-bar-row ${optClasses[i]}${extraClass}">
+      <span class="opt-badge">${optLetters[i]}</span>
+      <div class="result-bar-body">
+        <div class="result-bar-track">
+          <div class="result-bar-fill" style="width:${percentages[i]}%"></div>
+          <span class="result-bar-label">${esc(opt)}</span>
+        </div>
+      </div>
+      <span class="result-bar-pct">${percentages[i]}%${isCorrect ? ' <svg style="width:1em;height:1em;vertical-align:-2px" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</span>
+    </div>`;
+  }).join('');
 }
 
 // ─── Leaderboard renderer ─────────────────────────────────────────────────────
