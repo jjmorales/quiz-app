@@ -955,6 +955,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // If we have a saved player session (e.g. the page got reloaded after the
+  // OS killed the backgrounded tab while switching apps), try to rejoin
+  // straight back into the active game instead of showing the join screen.
+  const saved = loadPlayerSession();
+  if (saved) {
+    state.sessionId = saved.sessionId;
+    state.playerId = saved.playerId;
+    state.playerName = saved.playerName;
+    showPage('page-player-lobby');
+    reconnectPlayerWS();
+    return;
+  }
+
   // Check if already admin
   const me = await apiFetch('/api/admin/me');
   if (me.isAdmin) {
@@ -965,6 +978,35 @@ window.addEventListener('DOMContentLoaded', async () => {
     showPage('page-home');
   }
 });
+
+// ─── Player session persistence (survive tab reload from app-switching) ──────
+const PLAYER_SESSION_KEY = 'triviaPlayerSession';
+
+function savePlayerSession() {
+  try {
+    localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify({
+      sessionId: state.sessionId,
+      playerId: state.playerId,
+      playerName: state.playerName,
+    }));
+  } catch {}
+}
+
+function loadPlayerSession() {
+  try {
+    const raw = localStorage.getItem(PLAYER_SESSION_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    if (!saved?.sessionId || !saved?.playerId) return null;
+    return saved;
+  } catch {
+    return null;
+  }
+}
+
+function clearPlayerSession() {
+  try { localStorage.removeItem(PLAYER_SESSION_KEY); } catch {}
+}
 
 function getCookie(name) {
   return document.cookie.split('; ').find(r => r.startsWith(name + '='))?.split('=')[1];
@@ -1343,8 +1385,10 @@ function connectPlayerWS(sessionId, name) {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`${proto}://${location.host}`);
   state.ws = ws;
+  state.reconnectAttempts = 0;
 
   ws.onopen = () => {
+    state.reconnectAttempts = 0;
     ws.send(JSON.stringify({ type: 'join_lobby', sessionId, name }));
     startPing();
   };
@@ -1354,16 +1398,81 @@ function connectPlayerWS(sessionId, name) {
     handlePlayerMessage(msg);
   };
 
-  ws.onerror = () => showError('Connection error');
-  ws.onclose = () => clearInterval(state.pingInterval);
+  ws.onerror = () => {};
+  ws.onclose = () => {
+    clearInterval(state.pingInterval);
+    schedulePlayerReconnect();
+  };
 }
+
+function reconnectPlayerWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}`);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    state.reconnectAttempts = 0;
+    ws.send(JSON.stringify({ type: 'rejoin', sessionId: state.sessionId, playerId: state.playerId }));
+    startPing();
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handlePlayerMessage(msg);
+  };
+
+  ws.onerror = () => {};
+  ws.onclose = () => {
+    clearInterval(state.pingInterval);
+    schedulePlayerReconnect();
+  };
+}
+
+// Attempt to silently re-establish the player's connection (e.g. after the
+// phone backgrounds the tab to switch apps and the socket drops), instead of
+// stranding them on a dead connection with no way back into the game.
+function schedulePlayerReconnect() {
+  if (state.isAdmin) return;
+  if (!state.sessionId || !state.playerId) return;
+  if (state.reconnectTimer) return;
+
+  const attempt = (state.reconnectAttempts || 0) + 1;
+  state.reconnectAttempts = attempt;
+  const delay = Math.min(1000 * 2 ** (attempt - 1), 8000);
+
+  state.reconnectTimer = setTimeout(() => {
+    state.reconnectTimer = null;
+    reconnectPlayerWS();
+  }, delay);
+}
+
+// If the tab was backgrounded (e.g. user switched to another app) and the
+// socket died in the meantime, reconnect as soon as it's foregrounded again.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (state.isAdmin) return;
+  if (!state.sessionId || !state.playerId) return;
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) return;
+  if (state.reconnectTimer) { clearTimeout(state.reconnectTimer); state.reconnectTimer = null; }
+  state.reconnectAttempts = 0;
+  reconnectPlayerWS();
+});
 
 function handlePlayerMessage(msg) {
   switch (msg.type) {
     case 'joined':
       state.playerId = msg.playerId;
+      savePlayerSession();
       showPage('page-player-lobby');
       document.getElementById('player-trivia-title').innerHTML = '<svg style="width:1.1em;height:1.1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> Waiting for host…';
+      break;
+
+    case 'rejoined':
+      state.playerId = msg.playerId;
+      state.playerName = msg.name;
+      state.sessionId = msg.sessionId;
+      savePlayerSession();
+      restorePlayerView(msg);
       break;
 
     case 'lobby_update':
@@ -1398,15 +1507,71 @@ function handlePlayerMessage(msg) {
       break;
 
     case 'session_ended':
+      forgetPlayerSession();
       stopTimer();
       showPage('page-home');
       showError('The host ended the session.');
       break;
 
     case 'error':
+      forgetPlayerSession();
       showError(msg.message);
       showPage('page-home');
       break;
+  }
+}
+
+// Fully abandon the current player session — clears storage and in-memory
+// state so the reconnect loop / visibilitychange handler stop trying to
+// rejoin a session that's gone (ended by host, or rejoin was rejected).
+function forgetPlayerSession() {
+  clearPlayerSession();
+  if (state.reconnectTimer) { clearTimeout(state.reconnectTimer); state.reconnectTimer = null; }
+  state.sessionId = null;
+  state.playerId = null;
+  state.reconnectAttempts = 0;
+  if (state.ws) { state.ws.onclose = null; state.ws.close(); }
+}
+
+// Restore the player to whatever page matches the game's current state after
+// reconnecting mid-session, instead of leaving them stuck on a stale screen.
+function restorePlayerView(msg) {
+  switch (msg.state) {
+    case 'lobby':
+      renderPlayerLobby(msg.leaderboard);
+      document.getElementById('player-trivia-title').innerHTML = '<svg style="width:1.1em;height:1.1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> Waiting for host…';
+      showPage('page-player-lobby');
+      break;
+
+    case 'question': {
+      const elapsed = msg.questionStartTime ? (Date.now() - msg.questionStartTime) / 1000 : 0;
+      const remaining = msg.question.timeLimit - elapsed;
+      showPlayerQuestion(msg.question, remaining);
+      if (msg.hasAnswered) {
+        state.lastAnswerIndex = -1;
+        disableAnswers();
+        setHidden('player-answered-msg', false);
+        document.querySelector('.answer-grid')?.classList.add('hidden');
+      }
+      break;
+    }
+
+    case 'results':
+      // We don't have the full breakdown to redraw, so drop them on the
+      // leaderboard — the next question/results push will resync everything.
+      showPlayerLeaderboard(msg.leaderboard);
+      break;
+
+    case 'leaderboard':
+      showPlayerLeaderboard(msg.leaderboard);
+      break;
+
+    case 'final':
+      showPlayerFinal(msg.leaderboard);
+      break;
+
+    default:
+      showPage('page-player-lobby');
   }
 }
 
@@ -1420,7 +1585,7 @@ function renderPlayerLobby(players) {
   ).join('');
 }
 
-function showPlayerQuestion(q) {
+function showPlayerQuestion(q, remainingSeconds = q.timeLimit) {
   stopTimer();
   state.lastAnswerIndex = null;
   state.currentQuestion = q;
@@ -1441,7 +1606,7 @@ function showPlayerQuestion(q) {
 
   setHidden('player-answered-msg', true);
   showPage('page-player-question');
-  startTimer('player-timer-arc', 'player-timer-num', q.timeLimit);
+  startTimer('player-timer-arc', 'player-timer-num', q.timeLimit, remainingSeconds);
 }
 
 function submitAnswer(index) {
@@ -1529,12 +1694,12 @@ function renderLeaderboard(elId, players, highlightName = null) {
 }
 
 // ─── Timer ────────────────────────────────────────────────────────────────────
-function startTimer(arcId, numId, totalSeconds) {
+function startTimer(arcId, numId, totalSeconds, startRemaining = totalSeconds) {
   stopTimer();
   const circumference = 188.5;
   const arc = document.getElementById(arcId);
   const num = document.getElementById(numId);
-  let remaining = totalSeconds;
+  let remaining = Math.max(0, Math.min(totalSeconds, Math.round(startRemaining)));
 
   function tick() {
     const frac = remaining / totalSeconds;

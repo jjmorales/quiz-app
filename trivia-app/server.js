@@ -68,7 +68,7 @@ function createSession(triviaId) {
     id,
     triviaId,
     state: 'lobby', // lobby | question | results | leaderboard | final
-    players: {}, // { [playerId]: { id, name, score, ws } }
+    players: {}, // { [playerId]: { id, name, score, ws, disconnectTimer } }
     currentQuestion: 0,
     questionStartTime: null,
     answers: {}, // { [playerId]: { answerIndex, timeMs } }
@@ -76,6 +76,9 @@ function createSession(triviaId) {
   };
   return sessions[id];
 }
+
+// How long a disconnected player's seat/score is held before being dropped.
+const RECONNECT_GRACE_MS = 2 * 60 * 1000;
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -372,6 +375,38 @@ wss.on('connection', (ws) => {
         break;
       }
 
+      case 'rejoin': {
+        const session = sessions[msg.sessionId];
+        if (!session) return sendTo(ws, { type: 'error', message: 'Session not found' });
+        const player = session.players[msg.playerId];
+        if (!player) return sendTo(ws, { type: 'error', message: 'Session not found' });
+
+        if (player.disconnectTimer) {
+          clearTimeout(player.disconnectTimer);
+          player.disconnectTimer = null;
+        }
+        player.ws = ws;
+        playerId = msg.playerId;
+        sessionId = msg.sessionId;
+
+        sendTo(ws, {
+          type: 'rejoined',
+          playerId: player.id,
+          name: player.name,
+          sessionId,
+          state: session.state,
+          score: player.score,
+          leaderboard: getLeaderboard(session),
+          question: (session.state === 'question') ? getQuestionForPlayer(session) : null,
+          hasAnswered: !!session.answers[player.id],
+          questionStartTime: session.questionStartTime,
+        });
+        if (session.state === 'lobby') {
+          broadcast(session, { type: 'lobby_update', players: getLeaderboard(session) });
+        }
+        break;
+      }
+
       case 'admin_join': {
         // Admin connects to a session to host it
         const token = msg.token;
@@ -470,9 +505,27 @@ wss.on('connection', (ws) => {
     const session = sessions[sessionId];
     if (!session) return;
     if (isAdmin) {
-      session.adminWs = null;
+      if (session.adminWs === ws) session.adminWs = null;
     } else if (playerId) {
-      delete session.players[playerId];
+      const player = session.players[playerId];
+      // Ignore stale close events from a socket the player has since replaced via rejoin.
+      if (!player || player.ws !== ws) return;
+
+      if (session.state === 'final') {
+        delete session.players[playerId];
+        return;
+      }
+
+      // Hold the player's seat/score for a grace period in case they reconnect
+      // (e.g. switching apps on mobile), instead of dropping them immediately.
+      player.ws = null;
+      player.disconnectTimer = setTimeout(() => {
+        delete session.players[playerId];
+        if (session.state === 'lobby') {
+          broadcast(session, { type: 'lobby_update', players: getLeaderboard(session) });
+        }
+      }, RECONNECT_GRACE_MS);
+
       if (session.state === 'lobby') {
         broadcast(session, { type: 'lobby_update', players: getLeaderboard(session) });
       }
