@@ -944,6 +944,21 @@ async function apiFetch(url, opts = {}) {
 
 // ─── Routing ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
+  // If we have a saved player session (e.g. the page got reloaded after the
+  // OS killed the backgrounded tab while switching apps, or the player just
+  // hit refresh mid-game), try to rejoin straight back into the active game
+  // instead of showing the join screen. This takes priority over a `?join=`
+  // link in the URL, since that stays in the address bar after joining.
+  const saved = loadPlayerSession();
+  if (saved) {
+    state.sessionId = saved.sessionId;
+    state.playerId = saved.playerId;
+    state.playerName = saved.playerName;
+    showPage('page-player-lobby');
+    reconnectPlayerWS();
+    return;
+  }
+
   const params = new URLSearchParams(location.search);
   const joinSession = params.get('join');
 
@@ -952,19 +967,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('join-code-input').value = joinSession.toUpperCase();
     showPage('page-home');
     document.getElementById('join-name').focus();
-    return;
-  }
-
-  // If we have a saved player session (e.g. the page got reloaded after the
-  // OS killed the backgrounded tab while switching apps), try to rejoin
-  // straight back into the active game instead of showing the join screen.
-  const saved = loadPlayerSession();
-  if (saved) {
-    state.sessionId = saved.sessionId;
-    state.playerId = saved.playerId;
-    state.playerName = saved.playerName;
-    showPage('page-player-lobby');
-    reconnectPlayerWS();
     return;
   }
 
