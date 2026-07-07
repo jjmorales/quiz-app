@@ -723,6 +723,8 @@
     </div>
   </div>
 
+  <button id="floating-end-session" class="hidden" onclick="confirmEndSession()" title="End session for all players" style="position:fixed;top:14px;right:14px;z-index:50;background:var(--red);color:#fff;border:2px solid #cc0000;border-radius:999px;padding:8px 16px;font-weight:700;font-size:.85rem;box-shadow:0 3px 0 #cc0000;cursor:pointer;">End Session</button>
+
   <!-- ════════════════════════════════════════════════════════════════
        PAGE: Admin – Session Lobby (host view)
   ═══════════════════════════════════════════════════════════════════ -->
@@ -916,9 +918,12 @@ const state = {
 };
 
 // ─── Utils ─────────────────────────────────────────────────────────────────────
+const ADMIN_IN_GAME_PAGES = ['page-admin-lobby', 'page-admin-question', 'page-admin-results'];
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  setHidden('floating-end-session', !ADMIN_IN_GAME_PAGES.includes(id));
   window.scrollTo(0, 0);
 }
 
@@ -1366,6 +1371,12 @@ function endSession() {
   state.ws?.send(JSON.stringify({ type: 'end_session' }));
   showPage('page-admin-dashboard');
   loadTrivias();
+}
+
+function confirmEndSession() {
+  if (confirm('End this session for all players now?')) {
+    endSession();
+  }
 }
 
 // ─── WebSocket (Player) ───────────────────────────────────────────────────────
