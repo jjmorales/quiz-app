@@ -78,7 +78,9 @@ function createSession(triviaId) {
 }
 
 // How long a disconnected player's seat/score is held before being dropped.
-const RECONNECT_GRACE_MS = 2 * 60 * 1000;
+// Generous window since phones commonly suspend backgrounded tabs/WS for
+// several minutes when a player switches apps at a party.
+const RECONNECT_GRACE_MS = 10 * 60 * 1000;
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -309,7 +311,13 @@ function endQuestion(session) {
   const result = getAnswerResult(session);
   broadcast(session, { type: 'question_results', result, leaderboard: getLeaderboard(session) });
 
-  // Auto-advance leaderboard
+  // Auto-advance to the leaderboard, unless this is the last question — there,
+  // wait for the admin to explicitly move on (they may want to discuss the
+  // answer) instead of racing the game to the final screen on a timer.
+  const trivia = trivias[session.triviaId];
+  const isLast = session.currentQuestion >= (trivia?.questions.length || 1) - 1;
+  if (isLast) return;
+
   const resultTime = q?.resultTime || 5;
   session.resultTimer = setTimeout(() => {
     if (session.state === 'results') {
@@ -397,7 +405,9 @@ wss.on('connection', (ws) => {
           state: session.state,
           score: player.score,
           leaderboard: getLeaderboard(session),
-          question: (session.state === 'question') ? getQuestionForPlayer(session) : null,
+          question: (session.state === 'question' || session.state === 'results') ? getQuestionForPlayer(session) : null,
+          result: (session.state === 'results') ? getAnswerResult(session) : null,
+          myAnswerIndex: (session.answers[player.id]?.answerIndex ?? null),
           hasAnswered: !!session.answers[player.id],
           questionStartTime: session.questionStartTime,
         });

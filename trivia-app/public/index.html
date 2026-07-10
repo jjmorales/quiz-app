@@ -921,10 +921,11 @@ const state = {
 const ADMIN_IN_GAME_PAGES = ['page-admin-lobby', 'page-admin-question', 'page-admin-results'];
 
 function showPage(id) {
+  const alreadyActive = document.getElementById(id).classList.contains('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   setHidden('floating-end-session', !ADMIN_IN_GAME_PAGES.includes(id));
-  window.scrollTo(0, 0);
+  if (!alreadyActive) window.scrollTo(0, 0);
 }
 
 function showError(msg) {
@@ -1349,7 +1350,7 @@ function showAdminResults(result, leaderboard, leaderboardOnly = false) {
     `;
   }
 
-  renderLeaderboard('admin-leaderboard', leaderboard);
+  renderLeaderboard('admin-leaderboard', leaderboard, null, leaderboardOnly);
   showPage('page-admin-results');
 }
 
@@ -1570,9 +1571,9 @@ function restorePlayerView(msg) {
     }
 
     case 'results':
-      // We don't have the full breakdown to redraw, so drop them on the
-      // leaderboard — the next question/results push will resync everything.
-      showPlayerLeaderboard(msg.leaderboard);
+      state.currentQuestion = msg.question;
+      state.lastAnswerIndex = msg.hasAnswered ? msg.myAnswerIndex : null;
+      showPlayerResults(msg.result, msg.leaderboard);
       break;
 
     case 'leaderboard':
@@ -1658,7 +1659,9 @@ function showPlayerResults(result, leaderboard) {
 }
 
 function showPlayerLeaderboard(leaderboard) {
-  renderLeaderboard('player-leaderboard', leaderboard, state.playerName);
+  // Same page as results (just the score list refreshing) — skip the entry
+  // animation so it doesn't visibly "flash"/re-slide-in on the transition.
+  renderLeaderboard('player-leaderboard', leaderboard, state.playerName, true);
   showPage('page-player-results');
 }
 
@@ -1694,11 +1697,11 @@ function renderResultBars(q, result, optLetters, optClasses, myAnswer = null) {
 }
 
 // ─── Leaderboard renderer ─────────────────────────────────────────────────────
-function renderLeaderboard(elId, players, highlightName = null) {
+function renderLeaderboard(elId, players, highlightName = null, skipAnimation = false) {
   const el = document.getElementById(elId);
   const rankClasses = ['gold', 'silver', 'bronze'];
   el.innerHTML = players.map((p, i) => `
-    <div class="lb-row" style="animation-delay:${i * 60}ms;${p.name === highlightName ? 'border-color:var(--primary2)' : ''}">
+    <div class="lb-row" style="${skipAnimation ? 'animation:none;' : `animation-delay:${i * 60}ms;`}${p.name === highlightName ? 'border-color:var(--primary2)' : ''}">
       <div class="lb-rank ${rankClasses[i] || ''}">${i + 1}</div>
       <div class="lb-name">${p.name === highlightName ? '<svg style="width:1em;height:1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> ' : ''}${esc(p.name)}</div>
       <div class="lb-score">${p.score.toLocaleString()}</div>
