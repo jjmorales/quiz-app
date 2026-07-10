@@ -998,22 +998,51 @@ function savePlayerSession() {
       playerName: state.playerName,
     }));
   } catch {}
+
+  // Belt-and-suspenders: also stamp identity into the URL. Some mobile
+  // browsers (iOS Safari in particular) can wipe localStorage between a
+  // force-quit and relaunch while still restoring the last-open URL, so this
+  // gives reconnection a second place to recover identity from.
+  try {
+    const url = new URL(location.href);
+    url.search = '';
+    url.searchParams.set('rejoinSession', state.sessionId);
+    url.searchParams.set('rejoinPlayer', state.playerId);
+    url.searchParams.set('rejoinName', state.playerName);
+    history.replaceState(null, '', url);
+  } catch {}
 }
 
 function loadPlayerSession() {
   try {
     const raw = localStorage.getItem(PLAYER_SESSION_KEY);
-    if (!raw) return null;
-    const saved = JSON.parse(raw);
-    if (!saved?.sessionId || !saved?.playerId) return null;
-    return saved;
-  } catch {
-    return null;
-  }
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved?.sessionId && saved?.playerId) return saved;
+    }
+  } catch {}
+
+  // Fall back to identity stamped in the URL if localStorage came back empty.
+  try {
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get('rejoinSession');
+    const playerId = params.get('rejoinPlayer');
+    const playerName = params.get('rejoinName');
+    if (sessionId && playerId) return { sessionId, playerId, playerName };
+  } catch {}
+
+  return null;
 }
 
 function clearPlayerSession() {
   try { localStorage.removeItem(PLAYER_SESSION_KEY); } catch {}
+  try {
+    const url = new URL(location.href);
+    url.searchParams.delete('rejoinSession');
+    url.searchParams.delete('rejoinPlayer');
+    url.searchParams.delete('rejoinName');
+    history.replaceState(null, '', url);
+  } catch {}
 }
 
 function getCookie(name) {
