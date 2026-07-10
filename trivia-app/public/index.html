@@ -935,35 +935,6 @@ function showError(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// Temporary diagnostic aid: surface uncaught errors as visible on-page text
-// (instead of only in devtools) so they can be read directly off a phone
-// screen while tracking down the reconnect-UI bug.
-function showDebugBanner(text) {
-  let el = document.getElementById('debug-banner');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'debug-banner';
-    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;padding:10px;font:12px monospace;white-space:pre-wrap;max-height:40vh;overflow:auto;';
-    const close = document.createElement('div');
-    close.textContent = '✕ dismiss';
-    close.style.cssText = 'text-align:right;cursor:pointer;font-weight:bold;margin-bottom:6px;';
-    close.onclick = () => el.remove();
-    el.appendChild(close);
-    const body = document.createElement('div');
-    body.id = 'debug-banner-body';
-    el.appendChild(body);
-    document.body.prepend(el);
-  }
-  document.getElementById('debug-banner-body').textContent += text + '\n\n';
-}
-
-window.addEventListener('error', (e) => {
-  showDebugBanner(`[error] ${e.message}\n${e.error?.stack || ''}`);
-});
-window.addEventListener('unhandledrejection', (e) => {
-  showDebugBanner(`[unhandledrejection] ${e.reason?.message || e.reason}\n${e.reason?.stack || ''}`);
-});
-
 function setHidden(id, hidden) {
   document.getElementById(id).classList.toggle('hidden', hidden);
 }
@@ -1651,7 +1622,13 @@ function restorePlayerView(msg) {
       break;
 
     case 'leaderboard':
-      showPlayerLeaderboard(msg.leaderboard);
+      // On a live transition the question/answer content is already on
+      // screen from the preceding 'results' state, so showPlayerLeaderboard
+      // only refreshes the score list. On a fresh reconnect nothing has
+      // been rendered yet, so repopulate the question/answer content too.
+      state.currentQuestion = msg.question;
+      state.lastAnswerIndex = msg.hasAnswered ? msg.myAnswerIndex : null;
+      showPlayerResults(msg.result, msg.leaderboard);
       break;
 
     case 'final':
