@@ -359,6 +359,29 @@
   /* ── Answer buttons ─────────────────────────────────────────────── */
   .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+  /* Question page: tighter vertical rhythm so it fits without scrolling,
+     and the answers sit inside one bounded box rather than floating loose. */
+  .page-compact { gap: 12px; }
+  .page-compact .question-display { padding: 16px 20px; }
+  .page-compact .question-progress { margin-bottom: 10px; }
+  .page-compact .question-text { font-size: 1.25rem; margin-bottom: 0; }
+  .page-compact .timer-wrap { margin-bottom: 2px; }
+
+  .answer-box {
+    background: var(--card);
+    border: 3px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+  }
+  .answer-box .answer-btn { min-height: 64px; padding: 12px 10px; }
+
+  .answered-strip {
+    font-size: .85rem;
+    font-weight: 700;
+    padding: 4px 4px 0;
+  }
+
   .answer-btn {
     background: #ffffff;
     border: 3px solid #f9a8d4;
@@ -619,6 +642,17 @@
     .join-code { font-size: 2.2rem; }
     .logo { font-size: 2rem; }
   }
+
+  /* ── Admin results: side-by-side on wide screens (TV cast), stacked on
+     narrow ones (phone) so the host doesn't have to scroll past the
+     answer breakdown to see the leaderboard. ─────────────────────────── */
+  .results-tv-row { display: flex; flex-direction: column; gap: 20px; }
+
+  @media (min-width: 900px) {
+    .page-admin-results-tv { max-width: 1200px; }
+    .results-tv-row { flex-direction: row; align-items: flex-start; }
+    .results-tv-row > .card { flex: 1; min-width: 0; max-height: 70vh; overflow-y: auto; }
+  }
 </style>
 </head>
 <body>
@@ -784,19 +818,21 @@
   <!-- ════════════════════════════════════════════════════════════════
        PAGE: Admin – Results view
   ═══════════════════════════════════════════════════════════════════ -->
-  <div id="page-admin-results" class="page">
+  <div id="page-admin-results" class="page page-admin-results-tv">
     <div class="logo"><svg class="logo-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="url(#starGrad7)" stroke="#e91e8c" stroke-width="1"/><defs><linearGradient id="starGrad7" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6fcf"/></linearGradient></defs></svg> Party Trivia <small>host</small></div>
 
-    <div class="card">
-      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Results</div>
-      <div id="admin-result-question" class="question-text" style="margin-bottom:16px"></div>
-      <div class="result-bars" id="admin-result-answers"></div>
-      <div id="admin-result-breakdown" class="mt-12 gap-col"></div>
-    </div>
+    <div class="results-tv-row">
+      <div class="card">
+        <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Results</div>
+        <div id="admin-result-question" class="question-text" style="margin-bottom:16px"></div>
+        <div class="result-bars" id="admin-result-answers"></div>
+        <div id="admin-result-breakdown" class="mt-12 gap-col"></div>
+      </div>
 
-    <div class="card">
-      <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg> Leaderboard</div>
-      <div id="admin-leaderboard" class="leaderboard"></div>
+      <div class="card">
+        <div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.5 4.5H18l-3.7 2.7 1.4 4.3L12 12l-3.7 2.5 1.4-4.3L6 7.5h4.5z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/><path d="M8 21h8M12 15v6" stroke="#cc9900" stroke-width="1.8" stroke-linecap="round"/><path d="M6 8H3a2 2 0 001.5 2L6 11M18 8h3a2 2 0 01-1.5 2L18 11" stroke="#cc9900" stroke-width="1.5" stroke-linecap="round"/></svg> Leaderboard</div>
+        <div id="admin-leaderboard" class="leaderboard"></div>
+      </div>
     </div>
 
     <button class="btn btn-accent btn-block" onclick="adminSkip()">Next <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -836,7 +872,7 @@
   <!-- ════════════════════════════════════════════════════════════════
        PAGE: Player – Question
   ═══════════════════════════════════════════════════════════════════ -->
-  <div id="page-player-question" class="page">
+  <div id="page-player-question" class="page page-compact">
     <div class="question-display">
       <div class="question-progress" id="player-q-progress"></div>
       <div class="timer-wrap">
@@ -851,11 +887,10 @@
       <div class="question-text" id="player-q-text"></div>
     </div>
 
-    <div class="answer-grid" id="player-answers"></div>
+    <div class="answer-grid answer-box" id="player-answers"></div>
 
-    <div id="player-answered-msg" class="card text-center hidden">
-      <div class="emoji-big"><svg style="width:3rem;height:3rem" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#39d353" stroke="#1fa83a" stroke-width="1.5"/><path d="M7.5 12l3 3 6-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="text-muted mt-4">Answer submitted! Waiting for others<span class="waiting-dots"></span></div>
+    <div id="player-answered-msg" class="answered-strip text-center hidden">
+      <span class="text-muted">Answer submitted! You can still change it above<span class="waiting-dots"></span></span>
     </div>
   </div>
 
@@ -1544,9 +1579,8 @@ function handlePlayerMessage(msg) {
 
     case 'answer_received':
       state.lastAnswerIndex = msg.answerIndex;
-      disableAnswers();
+      markSelectedAnswer(msg.answerIndex);
       document.getElementById('player-answered-msg').classList.remove('hidden');
-      document.querySelector('.answer-grid')?.classList.add('hidden');
       break;
 
     case 'question_results':
@@ -1607,10 +1641,9 @@ function restorePlayerView(msg) {
       const remaining = msg.question.timeLimit - elapsed;
       showPlayerQuestion(msg.question, remaining);
       if (msg.hasAnswered) {
-        state.lastAnswerIndex = -1;
-        disableAnswers();
+        state.lastAnswerIndex = msg.myAnswerIndex;
+        markSelectedAnswer(msg.myAnswerIndex);
         setHidden('player-answered-msg', false);
-        document.querySelector('.answer-grid')?.classList.add('hidden');
       }
       break;
     }
@@ -1675,12 +1708,14 @@ function showPlayerQuestion(q, remainingSeconds = q.timeLimit) {
 }
 
 function submitAnswer(index) {
-  if (state.lastAnswerIndex !== null) return;
+  if (state.lastAnswerIndex === index) return;
   state.ws?.send(JSON.stringify({ type: 'submit_answer', answerIndex: index }));
 }
 
-function disableAnswers() {
-  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+function markSelectedAnswer(index) {
+  document.querySelectorAll('#player-answers .answer-btn').forEach((b, i) => {
+    b.classList.toggle('my-answer', i === index);
+  });
 }
 
 function showPlayerResults(result, leaderboard) {

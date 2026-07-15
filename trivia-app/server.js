@@ -460,17 +460,20 @@ wss.on('connection', (ws) => {
       case 'submit_answer': {
         const session = sessions[sessionId];
         if (!session || session.state !== 'question') return;
-        if (!playerId || session.answers[playerId]) return; // already answered
+        if (!playerId) return;
+        const isFirstAnswer = !session.answers[playerId];
         const elapsed = Date.now() - session.questionStartTime;
         session.answers[playerId] = { answerIndex: msg.answerIndex, timeMs: elapsed };
         sendTo(ws, { type: 'answer_received', answerIndex: msg.answerIndex });
-        // Notify admin of answer count
-        sendTo(session.adminWs, {
-          type: 'answer_update',
-          answered: Object.keys(session.answers).length,
-          total: Object.keys(session.players).length,
-        });
-        // If everyone answered, auto-end
+        // Notify admin of answer count (only changes on the first answer per player)
+        if (isFirstAnswer) {
+          sendTo(session.adminWs, {
+            type: 'answer_update',
+            answered: Object.keys(session.answers).length,
+            total: Object.keys(session.players).length,
+          });
+        }
+        // If everyone has answered at least once, auto-end
         if (Object.keys(session.answers).length >= Object.keys(session.players).length) {
           if (session.questionTimer) clearTimeout(session.questionTimer);
           endQuestion(session);
@@ -521,13 +524,9 @@ wss.on('connection', (ws) => {
       // Ignore stale close events from a socket the player has since replaced via rejoin.
       if (!player || player.ws !== ws) return;
 
-      if (session.state === 'final') {
-        delete session.players[playerId];
-        return;
-      }
-
       // Hold the player's seat/score for a grace period in case they reconnect
-      // (e.g. switching apps on mobile), instead of dropping them immediately.
+      // (e.g. switching apps on mobile, or refreshing the final results page),
+      // instead of dropping them immediately.
       player.ws = null;
       player.disconnectTimer = setTimeout(() => {
         delete session.players[playerId];
