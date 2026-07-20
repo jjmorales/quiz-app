@@ -539,9 +539,19 @@
   .lb-rank.bronze { background: #cd7f32; color: #fff; box-shadow: 0 3px 0 #8b5524; }
 
   .lb-name  { flex: 1; font-weight: 900; color: var(--text); }
+  .lb-detail { font-weight: 600; font-size: .78rem; margin-top: 2px; }
   .lb-score {
     font-family: 'Fredoka One', cursive;
     font-weight: 400; color: var(--primary); font-size: 1.1rem;
+  }
+
+  .lb-you-sep {
+    text-align: center;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin: 2px 0 -2px;
   }
 
   /* ── Result screen ──────────────────────────────────────────────── */
@@ -1783,16 +1793,46 @@ function renderResultBars(q, result, optLetters, optClasses, myAnswer = null) {
 }
 
 // ─── Leaderboard renderer ─────────────────────────────────────────────────────
-function renderLeaderboard(elId, players, highlightName = null, skipAnimation = false) {
-  const el = document.getElementById(elId);
+function formatTime(ms) {
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function lbRowHtml(p, rank, highlightName, animationStyle) {
   const rankClasses = ['gold', 'silver', 'bronze'];
-  el.innerHTML = players.map((p, i) => `
-    <div class="lb-row" style="${skipAnimation ? 'animation:none;' : `animation-delay:${i * 60}ms;`}${p.name === highlightName ? 'border-color:var(--primary2)' : ''}">
-      <div class="lb-rank ${rankClasses[i] || ''}">${i + 1}</div>
-      <div class="lb-name">${p.name === highlightName ? '<svg style="width:1em;height:1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> ' : ''}${esc(p.name)}</div>
+  const detailParts = [];
+  if (typeof p.correctCount === 'number') {
+    detailParts.push(`${p.correctCount}/${p.questionsSoFar ?? p.correctCount} correct`);
+  }
+  if (typeof p.totalTimeMs === 'number' && p.totalTimeMs > 0) {
+    detailParts.push(formatTime(p.totalTimeMs));
+  }
+  return `
+    <div class="lb-row" style="${animationStyle}${p.name === highlightName ? 'border-color:var(--primary2)' : ''}">
+      <div class="lb-rank ${rankClasses[rank - 1] || ''}">${rank}</div>
+      <div class="lb-name">
+        ${p.name === highlightName ? '<svg style="width:1em;height:1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> ' : ''}${esc(p.name)}
+        ${detailParts.length ? `<div class="lb-detail text-muted">${detailParts.join(' · ')}</div>` : ''}
+      </div>
       <div class="lb-score">${p.score.toLocaleString()}</div>
     </div>
-  `).join('');
+  `;
+}
+
+// Renders the top 5 players; if highlightName is outside the top 5, appends
+// a separate "you are here" row so everyone can see where they stand.
+function renderLeaderboard(elId, players, highlightName = null, skipAnimation = false) {
+  const el = document.getElementById(elId);
+  const top = players.slice(0, 5);
+  let html = top.map((p, i) => lbRowHtml(p, i + 1, highlightName, skipAnimation ? 'animation:none;' : `animation-delay:${i * 60}ms;`)).join('');
+
+  if (highlightName) {
+    const myRank = players.findIndex(p => p.name === highlightName);
+    if (myRank >= 5) {
+      html += `<div class="lb-you-sep text-muted">You</div>` + lbRowHtml(players[myRank], myRank + 1, highlightName, 'animation:none;');
+    }
+  }
+
+  el.innerHTML = html;
 }
 
 // ─── Timer ────────────────────────────────────────────────────────────────────

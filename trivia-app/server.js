@@ -68,7 +68,7 @@ function createSession(triviaId) {
     id,
     triviaId,
     state: 'lobby', // lobby | question | results | leaderboard | final
-    players: {}, // { [playerId]: { id, name, score, ws, disconnectTimer } }
+    players: {}, // { [playerId]: { id, name, score, correctCount, totalTimeMs, ws, disconnectTimer } }
     currentQuestion: 0,
     questionStartTime: null,
     answers: {}, // { [playerId]: { answerIndex, timeMs } }
@@ -216,7 +216,14 @@ function sendTo(ws, message) {
 
 function getLeaderboard(session) {
   return Object.values(session.players)
-    .map(p => ({ id: p.id, name: p.name, score: p.score }))
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      score: p.score,
+      correctCount: p.correctCount || 0,
+      totalTimeMs: p.totalTimeMs || 0,
+      questionsSoFar: session.currentQuestion + (session.state === 'lobby' ? 0 : 1),
+    }))
     .sort((a, b) => b.score - a.score);
 }
 
@@ -300,11 +307,14 @@ function endQuestion(session) {
 
   Object.values(session.players).forEach(player => {
     const ans = session.answers[player.id];
-    if (ans && ans.answerIndex === q.correctIndex) {
+    if (!ans) return;
+    player.totalTimeMs = (player.totalTimeMs || 0) + ans.timeMs;
+    if (ans.answerIndex === q.correctIndex) {
       // Score: 1000 base, speed bonus up to 500
       const elapsed = ans.timeMs / 1000;
       const speedBonus = Math.round(500 * Math.max(0, (timeLimit - elapsed) / timeLimit));
       player.score += 1000 + speedBonus;
+      player.correctCount = (player.correctCount || 0) + 1;
     }
   });
 
@@ -472,11 +482,6 @@ wss.on('connection', (ws) => {
             answered: Object.keys(session.answers).length,
             total: Object.keys(session.players).length,
           });
-        }
-        // If everyone has answered at least once, auto-end
-        if (Object.keys(session.answers).length >= Object.keys(session.players).length) {
-          if (session.questionTimer) clearTimeout(session.questionTimer);
-          endQuestion(session);
         }
         break;
       }
