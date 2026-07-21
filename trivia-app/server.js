@@ -224,7 +224,7 @@ function getLeaderboard(session) {
       totalTimeMs: p.totalTimeMs || 0,
       questionsSoFar: session.currentQuestion + (session.state === 'lobby' ? 0 : 1),
     }))
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => b.correctCount - a.correctCount || a.totalTimeMs - b.totalTimeMs || b.score - a.score);
 }
 
 function getCurrentQuestion(session) {

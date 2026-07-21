@@ -1813,7 +1813,6 @@ function lbRowHtml(p, rank, highlightName, animationStyle) {
         ${p.name === highlightName ? '<svg style="width:1em;height:1em;vertical-align:middle" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" fill="#ffcc00" stroke="#cc9900" stroke-width="1"/></svg> ' : ''}${esc(p.name)}
         ${detailParts.length ? `<div class="lb-detail text-muted">${detailParts.join(' · ')}</div>` : ''}
       </div>
-      <div class="lb-score">${p.score.toLocaleString()}</div>
     </div>
   `;
 }
