@@ -1037,7 +1037,7 @@ const PLAYER_SESSION_KEY = 'triviaPlayerSession';
 
 function savePlayerSession() {
   try {
-    localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify({
+    sessionStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify({
       sessionId: state.sessionId,
       playerId: state.playerId,
       playerName: state.playerName,
@@ -1060,7 +1060,7 @@ function savePlayerSession() {
 
 function loadPlayerSession() {
   try {
-    const raw = localStorage.getItem(PLAYER_SESSION_KEY);
+    const raw = sessionStorage.getItem(PLAYER_SESSION_KEY);
     if (raw) {
       const saved = JSON.parse(raw);
       if (saved?.sessionId && saved?.playerId) return saved;
@@ -1080,7 +1080,7 @@ function loadPlayerSession() {
 }
 
 function clearPlayerSession() {
-  try { localStorage.removeItem(PLAYER_SESSION_KEY); } catch {}
+  try { sessionStorage.removeItem(PLAYER_SESSION_KEY); } catch {}
   try {
     const url = new URL(location.href);
     url.searchParams.delete('rejoinSession');
